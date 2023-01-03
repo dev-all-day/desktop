@@ -1,0 +1,50 @@
+html {
+  font-size: 24px;
+  height: 100%;
+}
+
+body {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+  margin: 0;
+  padding: 10px;
+  background-color: #202227;
+
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans",
+    "Droid Sans", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  /* font-size: 14px; */
+  color: #dadce0;
+}
+/* 
+body {
+  padding: 0px;
+  margin: 0px;
+  background-color: #202227;
+
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans",
+    "Droid Sans", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-size: 14px;
+  color: #39464e;
+} */
+
+.small {
+  font-size: 0.75rem;
+  font-weight: bold;
+  /* color: rgb(104, 149, 242); */
+}
+
+.text-gradient-coral-yellow-dark {
+  background: -webkit-linear-gradient(-70deg, #ff7170 0%, #353534 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-box-decoration-break: clone;
+}
+
+.title {
+  font-size: 64px !important;
+}
