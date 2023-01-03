@@ -7,9 +7,9 @@ use uuid::Uuid;
 use serde::{Serialize, Deserialize};
 use handlebars::Handlebars;
 
-
 use crate::{custom_error_handler::CustomError, shout};
-use tauri::{Window, window};
+
+// use tauri::{Window, window};
 
 use gloo_console::{log, __macro::JsValue};
 
@@ -53,14 +53,23 @@ pub async fn ip() -> impl Responder {
     // Ok(res)
 }
 
+
 #[get("/")]
+// async fn index() -> impl Responder {
 async fn index(hb: Data<Handlebars<'_>>) -> impl Responder {
+
+    // tumira(state,"Hello World".to_string()).await;
+
+    // let req = HttpRequest::default();
+    // let resp = app.call(req).await.unwrap();
+
 
     let data = Person {
         name: "Garikai Jenje",
         job: "Software Developer",
     };
-let html = hb.render("compliment", &data).unwrap();
+    // let mut hb = Handlebars::new();
+    let html = hb.render("compliment", &data).unwrap();
 
     HttpResponse::Ok()
         .content_type("text/html")
@@ -79,11 +88,83 @@ struct Ping {
     data: String
 }
 
+// use tauri::{Event};
+// use tauri::event::EventResult;
+
+// fn send_message_to_frontend() -> EventResult {
+//     let message = "Hello from the backend!";
+//     let event = Event::new("send-message-to-frontend", Some(message));
+//     event.fire()
+// }
+
+// use tauri::{Manager};
+// use tauri::WebView;
+
+
+// // A function that sends a message from Rust to JavaScript via a Tauri Event
+// fn rs2js<R: tauri::Runtime>(message: String, manager: &impl Manager<R>) {
+//     // info!(?message, "rs2js");
+//     manager
+//         .emit_all("rs2js", message)
+//         .unwrap();
+// }
+
+// struct SomeStruct {
+// field: i32
+// }
+
+// fn send_event(webview: &mut WebView<()>) {
+//     let value = SomeStruct { field: 42 };
+//     let _ = webview.emit("my-event", &value);
+// }
+
+
+
+use crate::{broadcast::Broadcaster};
+// use self::broadcast::Broadcaster;
+// use crate::broadcast;
+use std::{sync::Arc};
+// pub struct  AppState{
+//     broadcaster:Arc<Broadcaster>,
+// }
+// pub async fn tumira(
+//     state: web::Data<AppState>,
+//     msg: String,
+// ) -> impl Responder {
+//     state.broadcaster.broadcast(&msg).await;
+//     HttpResponse::Ok().body("msg sent")
+// }
 // #[post("/")]
-pub async fn receive(post: web::Json<APIPayload>) -> impl Responder {
+// pub async fn receive(req: HttpRequest,post: web::Json<APIPayload>) -> impl Responder {
+
+// SSE 
+pub struct  AppState{
+    broadcaster:Arc<Broadcaster>
+}
+
+pub async fn receive(
+    state: web::Data<AppState>
+) -> impl Responder {
+    state.broadcaster.broadcast("Hdhdhdhdd").await;
+    HttpResponse::Ok().body("msg sent")
+}
+
+pub async fn receiveeee(post: web::Json<APIPayload>) -> impl Responder {
 // async fn receive(post: web::Json<APIPayload>) -> Result<HttpResponse, CustomError> {
     //  println!("Uploaded Content: {:#?}", uploaded_content);
     println!("Group {:#?}", post);
+
+    // let state = req
+    //     .app_data::<Data<AppState>>()
+    //     .expect("app_data is empty!");
+
+        // let app_state = state.get_ref();
+
+        // println!("{:?}",state);
+
+    //  tumira(state,"Hello World".to_string()).await;
+
+    // Broadcaster::broadcast("Hello HAHAHHAA");
 
     // match post {
     //     Ok(post) => HttpResponse::Ok().json(post),
@@ -105,6 +186,11 @@ pub async fn receive(post: web::Json<APIPayload>) -> impl Responder {
         })
         .to_string())
     }else{
+
+        
+
+
+        // rs2js("hello".to_string(),Manager);
         
         // tauri::invoke(shout("API"));
         // tauri::Invoke("shout", { Inv {phrase: e} });

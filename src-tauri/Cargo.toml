@@ -14,6 +14,7 @@ rust-version = "1.57"
 tauri-build = { version = "1.2", features = [] }
 
 [dependencies]
+#actix server
 actix = "0.13.0"
 actix-files = "0.6.2"
 actix-web = "4.2.1"
@@ -28,6 +29,11 @@ json = "0.12"
 futures = "0.3.5"
 bytes = "1.3.0"
 gloo-console = "0.2.3"
+
+#sse
+actix-web-lab = "0.18.9"
+parking_lot = "0.12.1"
+futures-util = { version = "0.3.25", default-features = false, features = ["std"] }
 
 # ... or we might need to opt into certain "features" that aren't
 # included by default

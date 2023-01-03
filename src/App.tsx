@@ -1,5 +1,4 @@
-import React from "react";
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { relaunch } from "@tauri-apps/api/process";
 import { open } from "@tauri-apps/api/shell";
@@ -22,6 +21,8 @@ function App() {
 
   const inpRef: any = React.useRef(null);
 
+  const [events, setEvents] = useState<any>([]);
+
   React.useEffect(() => {
     if (name) shout(name);
     else setGreetMsg("");
@@ -35,6 +36,38 @@ function App() {
 
   React.useEffect(() => {
     getIP();
+  }, []);
+
+  useEffect(() => {
+    if ("EventSource" in window) {
+      const eventSource = new EventSource("http://127.0.0.1:9000/events");
+
+      eventSource.onopen = () => {
+        // setEvents((events: any) => events.concat("Connection Opened"));
+        console.log("Connection Opened");
+      };
+
+      eventSource.onmessage = (event) => {
+        console.log(JSON.parse(event.data));
+        setEvents((events: any) => [...events, event.data]);
+      };
+
+      // eventSource.onmessage = (event) => {
+      //   const parsedData = JSON.parse(event.data);
+
+      //   setEvents((events:any) => events.concat(parsedData));
+      // };
+
+      eventSource.onerror = (event) => {
+        console.error(event);
+      };
+
+      return () => {
+        eventSource.close();
+      };
+    } else {
+      // throw fatal error
+    }
   }, []);
 
   const Logo = () => {
@@ -70,6 +103,14 @@ function App() {
       </div>
       <p>{greetMsg}</p>
       <p>{ip}</p>
+
+      {events.length > 0 ? (
+        <ul>
+          {events.map((event: any, index: any) => (
+            <li key={index}>{event}</li>
+          ))}
+        </ul>
+      ) : null}
 
       {/* <div style={{ marginTop: 40 }}>
         <button type="button" onClick={async () => await relaunch()}>

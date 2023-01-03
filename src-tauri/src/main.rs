@@ -8,12 +8,12 @@
 mod routes;
 mod errors;
 mod custom_error_handler;
+// mod ws;
 
 use std::net::{TcpListener, Ipv4Addr, IpAddr};
 
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::str;
-use std::io;
 use std::thread;
 use actix_web::error::{InternalError, JsonPayloadError};
 // use std::io::prelude::*;
@@ -28,6 +28,7 @@ use futures::StreamExt;
 use serde::{Serialize, Deserialize};
 // use futures_util::StreamExt as _;
 use serde_json::json;
+use serde_json::{to_string, Value};
 use json::JsonValue;
 use port_scanner::local_ports_available_range;
 use tauri::{CustomMenuItem, Menu, MenuItem, Submenu,Manager,SystemTray,SystemTrayMenu, SystemTrayMenuItem, SystemTrayEvent};
@@ -36,6 +37,32 @@ use handlebars::Handlebars;
 use actix_cors::Cors;
 use errors::error_handlers;
 // mod err_handler;
+
+// sse
+mod broadcast;
+use self::broadcast::Broadcaster;
+use std::{io, sync::Arc};
+use actix_web_lab::extract::Path;
+
+// SSE 
+pub struct  AppState{
+    broadcaster:Arc<Broadcaster>
+}
+
+// SSE
+pub async fn sse_client(state: web::Data<AppState>) -> impl Responder {
+    println!("in api");
+    state.broadcaster.new_client().await
+}
+
+pub async fn broadcast_msg(
+    state: web::Data<AppState>,
+    Path((msg,)): Path<(String,)>,
+) -> impl Responder {
+    state.broadcaster.broadcast(&msg).await;
+    HttpResponse::Ok().body("msg sent")
+}
+
 
 
 // This command must be async so that it doesn't run on the main thread.
@@ -80,41 +107,83 @@ format!("local ip address: {ip}:{port}")
   
 }
 
+// pub async fn receive(
+//     state: web::Data<AppState>
+// ) -> impl Responder {
+//     state.broadcaster.broadcast("Hdhdhdhdd").await;
+//     HttpResponse::Ok().body("msg sent")
+// }
+#[derive(Debug, Serialize, Deserialize)]
+pub struct APIPayload {
+    group: Option<String>,
+    state:Option<String>,
+    action:Option<String>,
+}
 
+// pub async fn receive(state: web::Data<AppState>,post: web::web::Json<Value>) -> impl Responder {
+pub async fn receive(state: web::Data<AppState>,post: web::Json<APIPayload>) -> impl Responder {
+// async fn receive(post: web::Json<APIPayload>) -> Result<HttpResponse, CustomError> {
+    //  println!("Uploaded Content: {:#?}", uploaded_content);
+    println!("Group {:#?}", post);
+
+    // let state = req
+    //     .app_data::<Data<AppState>>()
+    //     .expect("app_data is empty!");
+
+        // let app_state = state.get_ref();
+
+        // println!("{:?}",state);
+
+    //  tumira(state,"Hello World".to_string()).await;
+
+    // convert json to string
+    let json_str = to_string(&post).unwrap();
+
+    // Broadcaster::broadcast("Hello HAHAHHAA");
+    state.broadcaster.broadcast(&json_str).await;
+
+    // match post {
+    //     Ok(post) => HttpResponse::Ok().json(post),
+    //     // _ => HttpResponse::BadRequest().body("Invalid Request")
+    //     _ => Err(CustomError::BadClientData)
+    // }
+
+    let group = post.group.to_owned();
+
+    // let window: &Window;
+
+    if group.is_none() {
+        HttpResponse::BadRequest().body(json!({
+            "code": 400,
+            "message": "Invalid request",
+            "payload" : {
+                "error":"group is required"
+            }
+        })
+        .to_string())
+    }else{
+
+        
+
+
+        // rs2js("hello".to_string(),Manager);
+        
+        // tauri::invoke(shout("API"));
+        // tauri::Invoke("shout", { Inv {phrase: e} });
+        // tauri::Invoke("sfsafsdf", shout);
+        // window.emit("ping", {}).unwrap();
+        HttpResponse::Ok().json(post)
+    }
+    // Err(CustomError::BadClientData)
+
+}
 
 fn main() {
-
-    // Check for open port
-    if let Some(available_port) = get_available_port() {
-        println!("port `{}` is available", available_port);
-    }
-
-    let mut special_port = 0;
-
-    for available in local_ports_available_range(3000..3005) {
-        println!("Port {} is available to use", available);
-        special_port = available;
-        break;
-        // if special_port == 0 {
-        //     special_port = available;
-        //     break;
-        // }else {
-        //     break;
-        // }
-    }
-
+  
     thread::spawn(move || {
         let _ = start_server();
     });
 
-    // let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-    // let menu = Menu::new()
-    // .add_native_item(MenuItem::Hide)
-    // .add_native_item(MenuItem::Minimize)
-    // .add_native_item(MenuItem::HideOthers)
-    // .add_native_item(MenuItem::Separator)
-    // .add_native_item(MenuItem::Quit)
-    // .add_item(quit); // configure the menu
 
     let quit = CustomMenuItem::new("quit".to_string(), "Quit");
 let close = CustomMenuItem::new("close".to_string(), "Close");
@@ -202,20 +271,20 @@ let tray_menu = SystemTrayMenu::new()
             _ => {}
             })
         .setup(|app| {
-        let splashscreen_window = app.get_window("splashscreen").unwrap();
-        let main_window = app.get_window("main").unwrap();
-        // we perform the initialization code on a new task so the app doesn't freeze
-        tauri::async_runtime::spawn(async move {
-            // initialize your app here instead of sleeping :)
-            println!("Initializing...");
-            std::thread::sleep(std::time::Duration::from_secs(3));
-            println!("Done initializing.");
+            let splashscreen_window = app.get_window("splashscreen").unwrap();
+            let main_window = app.get_window("main").unwrap();
+            // we perform the initialization code on a new task so the app doesn't freeze
+            tauri::async_runtime::spawn(async move {
+                // initialize your app here instead of sleeping :)
+                println!("Initializing...");
+                std::thread::sleep(std::time::Duration::from_secs(3));
+                println!("Done initializing.");
 
-            // After it's done, close the splashscreen and display the main window
-            splashscreen_window.close().unwrap();
-            main_window.show().unwrap();
-        });
-        Ok(())
+                // After it's done, close the splashscreen and display the main window
+                splashscreen_window.close().unwrap();
+                main_window.show().unwrap();
+            });
+            Ok(())
         })
         .invoke_handler(tauri::generate_handler![close_splashscreen])
         .invoke_handler(tauri::generate_handler![greet,shout,my_ip])
@@ -224,63 +293,22 @@ let tray_menu = SystemTrayMenu::new()
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 
-    // tauri::Builder::default()
-    //     .invoke_handler(tauri::generate_handler![shout])
-    //     .run(tauri::generate_context!())
-    //     .expect("error while running tauri application");
-
-    /* Creating a Local TcpListener at Port 8477 */
-    // const HOST : &str ="127.0.0.1";
-    // const PORT : &str ="8477";
-    // /* Concatenating Host address and Port to Create Final Endpoint */
-    // let end_point : String = HOST.to_owned() + ":" +  PORT;
-    // /*Creating TCP Listener at our end point */
-    // let listener = TcpListener::bind(end_point).unwrap();
-    // println!("Web server is listening at port {}",PORT);
-    // /* Connecting to any incoming connections */
-    // for stream in listener.incoming() {
-    //     let _stream = stream.unwrap();
-    //     println!("Connection established!");
-    // }
-
-    
-
-
+   
 
 }
 
 fn add_error_header<B>(mut res: dev::ServiceResponse<B>) -> Result<ErrorHandlerResponse<B>> {
-// fn add_error_header<B>(mut res: dev::ServiceResponse<B>) -> Result<ErrorHandlerResponse<B>> {
     res.response_mut().headers_mut().insert(
         header::CONTENT_TYPE,
         header::HeaderValue::from_static("application/json"),
     );
-    // Ok(ErrorHandlerResponse::Response(json!({
-    //         "status": "Success",
-    //         "code": 500,
-    //         "message": "Something went wrong.",
-    //     })
-    //     .to_string()))
-    // HttpResponse::Ok().content_type("application/json").body(
-    //     json!({
-    //         "status": "Success",
-    //         "code": 200,
-    //         "message": "Something went wrong."
-    //     })
-    //     .to_string(),
-    // )
     Ok(ErrorHandlerResponse::Response(res.map_into_left_body()))
-    // let res = res.map_body(|_, _| body(from("{\"code\":413,\"error\":\"413 Payload Too Large\",\"message\":\"You've sent more data than expected\"}")).into_body());//alter the the response body see "https://users.rust-lang.org/t/actix-web-using-a-custom-error-handler-to-alter-the-response-body/41068"
-    // Ok(ErrorHandlerResponse::Response(res))
-
-    // let req = res.request();
-    // // let res = res.map_body(|_, _| ResponseBody::Body(Body::from("test")));
-    // let res = res.into_body();
-    // Ok(ErrorHandlerResponse::Response(res))
 }
 
 #[actix_rt::main]
 async fn start_server() -> std::io::Result<()> {
+
+    let broadcaster = Broadcaster::create();
 
     let template_service = {
         let mut handlebars = Handlebars::new();
@@ -292,15 +320,25 @@ async fn start_server() -> std::io::Result<()> {
         Data::new(handlebars)
     };
 
-
     let server_addr = "127.0.0.1";
     let server_port = 9000;
 
+   
+   
 
     let app = HttpServer::new(move || {
+
+        let state = web::Data::new(AppState {
+            broadcaster: Arc::clone(&broadcaster)
+        });
+
+        // let cors = Cors::default()
         let cors = Cors::default()
-            .allowed_origin("//localhost")
-            .allowed_origin("//127.0.0.1")
+            // .allowed_origin("//localhost")
+            // .allowed_origin("//127.0.0.1")
+            // .send_wildcard()
+            // .allowed_origin("*")
+            .allow_any_origin()
             .allowed_methods(vec!["GET", "POST","OPTIONS"])
             .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
             .allowed_header(http::header::CONTENT_TYPE)
@@ -310,6 +348,10 @@ async fn start_server() -> std::io::Result<()> {
             // .wrap(error_handlers())
             .wrap(ErrorHandlers::new().handler(StatusCode::INTERNAL_SERVER_ERROR, add_error_header))
             .app_data(template_service.clone())
+            .app_data(state.clone())
+            // .app_data(web::Data::new(AppState {
+            //     broadcaster: Arc::clone(&broadcaster)
+            // }))
             .service(Files::new("/public", "src/web/public").show_files_listing())
             .service(routes::index)
             // .service(web::resource("/").route(web::get().to(HttpResponse::InternalServerError)))
@@ -317,14 +359,19 @@ async fn start_server() -> std::io::Result<()> {
             .service(routes::test)
             // .service(routes::receive)
             .service(
-                        web::resource("/")
-                        .app_data(
-                            web::JsonConfig::default()
-                                // .limit(4096)
-                                .error_handler(post_error)
-                        )
-                        .route(web::post().to(routes::receive))
-                    )
+                web::resource("/")
+                .app_data(
+                    web::JsonConfig::default()
+                        // .limit(4096)
+                        .error_handler(post_error)
+                )
+                .route(web::post().to(receive))
+            )
+             // This route is used to listen events/ sse events
+            .route("/events", web::get().to(sse_client))
+            // .route("/events{_:/?}", web::get().to(sse_client))
+            // This route will create notification
+            .route("/events/{msg}", web::get().to(broadcast_msg))
             // .route("/", web::get().to(compliment))
             // .route("/ip", web::get().to(ip))
     })
