@@ -103,7 +103,8 @@ fn my_ip() -> String {
 // //   let ip = local_ip::get().expect("failed to find local ip addr");
   let port = portpicker::pick_unused_port().expect("failed to find unused port");
 
-format!("local ip address: {ip}:{port}")
+format!("{ip}")
+// format!("local ip address: {ip}:{port}")
   
 }
 
@@ -321,7 +322,7 @@ async fn start_server() -> std::io::Result<()> {
     };
 
     let server_addr = "127.0.0.1";
-    let server_port = 9000;
+    let server_port = 3310;
 
    
    
@@ -356,6 +357,7 @@ async fn start_server() -> std::io::Result<()> {
             .service(routes::index)
             // .service(web::resource("/").route(web::get().to(HttpResponse::InternalServerError)))
             .service(routes::ip)
+            .service(getPort)
             .service(routes::test)
             // .service(routes::receive)
             .service(
@@ -399,6 +401,45 @@ struct PostError {
       InternalError::from_response(err, HttpResponse::BadRequest().json(post_error)).into()
     }
 
+
+
+#[get("/port")]
+// pub async fn ip() -> Result<HttpResponse, Error> {
+pub async fn getPort() -> impl Responder {
+
+
+    let mut special_port1 = 0;
+
+  // Check for open port
+    if let Some(available_port) = get_available_port() {
+        // println!("port `{}` is available", available_port);
+        special_port1 = available_port;
+    }
+
+    let mut special_port = 0;
+
+    for available in local_ports_available_range(3000..3005) {
+        // println!("Port {} is available to use", available);
+        special_port = available;
+        break;
+        // if special_port == 0 {
+        //     special_port = available;
+        //     break;
+        // }else {
+        //     break;
+        // }
+    }
+
+
+     HttpResponse::Ok().content_type("application/json").body(
+        json!({
+            "port1": format!("Port {} is available to use", special_port1),
+            "port2": format!("Port {} is available to use", special_port),
+        })
+        .to_string(),
+    )
+
+}
 
 pub async fn ip() -> impl Responder {
   let ip = local_ip::get().unwrap();

@@ -6,7 +6,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "{dev.all.day}",
+    "productName": "dev-all-day",
     "version": "0.0.0"
   },
   "tauri": {
@@ -15,18 +15,21 @@
       "iconAsTemplate": true
     },
     "allowlist": {
-      "all": true
+      "all": true,
+      "window": {
+        "setAlwaysOnTop": false
+      }
     },
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
-      "copyright": "",
+      "copyright": "Garikai Jenje",
       "deb": {
         "depends": []
       },
       "externalBin": [],
       "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
-      "identifier": "com.tauri.dev",
+      "identifier": "com.devallday.com",
       "longDescription": "",
       "macOS": {
         "entitlements": null,

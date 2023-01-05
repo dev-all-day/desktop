@@ -54,6 +54,7 @@ pub async fn ip() -> impl Responder {
 }
 
 
+
 #[get("/")]
 // async fn index() -> impl Responder {
 async fn index(hb: Data<Handlebars<'_>>) -> impl Responder {
