@@ -6,6 +6,8 @@ import { open } from "@tauri-apps/api/shell";
 import "./App.css";
 
 import { IoShuffleSharp } from "react-icons/io5";
+// @ts-ignore
+import ReactDataViewer from "react-data-viewer";
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
@@ -45,7 +47,7 @@ function App() {
     setGreetMsg(await invoke("shout", { phrase: e }));
   }
 
-  const inpRef: any = React.useRef(null);
+  // const inpRef: any = React.useRef(null);
 
   const [events, setEvents] = useState<any>([]);
 
@@ -53,7 +55,7 @@ function App() {
     if (name) shout(name);
     else setGreetMsg("");
 
-    inpRef.current.focus();
+    // inpRef.current.focus();
   }, [name]);
 
   async function getIP() {
@@ -112,81 +114,53 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-graybg ">
-      <header className="flex flex-row justify-between items-center w-full h-10 bg-white px-4">
-        <Logo />
-        <div className="flex gap-4">
-          {/* <span>Donate</span> */}
-          <span className="cursor-pointer hover:underline" onClick={async () => await open("http://localhost:3310")}>
-            Open In Browser
-          </span>
-        </div>
-      </header>
-      <main className="flex-grow flex flex-row overflow-hidden justify-center gap-8">
-        {/* <main className="flex-1 flex flex-col p-4 justify-center items-center gap-8"> */}
-
-        <div className="flex-shrink-0 w-1/5 p-4 bg-gray-700 flex flex-col gap-4">
-          <div className="bg-white rounded-lg w-full h-16 hover:bg-gray-400 cursor-pointer flex flex-col justify-between group">
-            <span></span>
-            <hr className="group-hover:border-gray-700" />
-            <span></span>
+    <div className="flex flex-col h-screen overflow-hidden bg-graybg">
+      <div className="flex-grow flex flex-row overflow-hidden justify-center">
+        <div className="flex-shrink-0 w-72 p-2 bg-[#1e1f21] flex flex-col gap-2 justify-between">
+          <div className="text-gray-100 bg-[#131415] rounded-md w-full p-3 cursor-pointer hover:bg-gray-500 hover:text-gray-200">
+            Connection #1
           </div>
-          <div className="bg-white rounded-lg w-full h-16 hover:bg-gray-400 cursor-pointer"></div>
-          <div className="bg-white rounded-lg w-full h-16 hover:bg-gray-400 cursor-pointer"></div>
-          <div className="bg-white rounded-lg w-full h-16 hover:bg-gray-400 cursor-pointer"></div>
-          <div className="bg-white rounded-lg w-full h-16 hover:bg-gray-400 cursor-pointer"></div>
-          <div className="bg-white rounded-lg w-full h-16 hover:bg-gray-400 cursor-pointer"></div>
-          <div className="bg-white rounded-lg w-full h-16 hover:bg-gray-400 cursor-pointer"></div>
-          <div className="bg-white rounded-lg w-full h-16 hover:bg-gray-400 cursor-pointer"></div>
-        </div>
 
-        <div className="flex-1 flex flex-col p-4">
-          <>
-            <div>
-              <input
-                ref={inpRef}
-                id="greet-input"
-                value={name}
-                onChange={(e) => setName(e.currentTarget.value)}
-                placeholder="Enter a name..."
-                autoComplete="off"
-              />
-              <button type="button" onClick={() => setName("")}>
-                Clear
-              </button>
+          <div className="flex flex-row gap-4 w-full h-10 bg-white justify-center items-center rounded-md text-sm">
+            <div className="flex flex-row gap-1 items-center">
+              <span>Address</span>
+              <span className="bg-slate-500 rounded text-gray-200 px-2">{address}</span>
+              <IoShuffleSharp className="cursor-pointer" onClick={() => shuffleAddresses()} />
             </div>
-
-            {/* <p>{greetMsg}</p> */}
-
-            {events.length > 0 ? (
-              <ul>
-                {events.map((event: any, index: any) => (
-                  <li key={index}>{event}</li>
-                ))}
-              </ul>
-            ) : null}
-          </>
+            <div className="flex flex-row gap-1">
+              <span>Port</span>
+              <span className="bg-slate-500 rounded text-gray-200 px-2">3310</span>
+            </div>
+          </div>
         </div>
 
-        <div className="flex-shrink-0 w-1/4 p-4 bg-blue-700">Theme {theme}</div>
+        <div className="flex-1 flex flex-col p-2 bg-[#131415]">
+          <div className="text-white flex flex-row justify-between items-center gap-2 font-bold">
+            {/* <div className="text-white flex flex-row justify-between items-center bg-gray-800 rounded-lg p-2 gap-2"> */}
+            <span className="bg-gray-500 p-3 px-4 rounded cursor-pointer hover:bg-gray-700 flex-1 text-center no-select ">
+              LOGS
+            </span>
+            <span className="bg-gray-500 p-3 px-4 rounded cursor-pointer hover:bg-gray-700 flex-1 text-center no-select ">
+              STATES
+            </span>
+            <span className="bg-gray-500 p-3 px-4 rounded cursor-pointer hover:bg-gray-700 flex-1 text-center no-select ">
+              EVENTS
+            </span>
+            <span className="bg-gray-500 p-3 px-4 rounded cursor-pointer hover:bg-gray-700 flex-1 text-center no-select ">
+              FLOW
+            </span>
+          </div>
+          {events.length > 0 ? (
+            <ul>
+              {events.map((event: any, index: any) => (
+                <li key={index}>{event}</li>
+              ))}
+            </ul>
+          ) : null}
 
-        {/* <div style={{ marginTop: 40 }}>
-        <button type="button" onClick={async () => await relaunch()}>
-          Restart
-        </button>
-      </div> */}
-      </main>
-      <footer className="flex flex-row gap-4 w-full h-10 bg-white justify-center items-center">
-        <div className="flex flex-row gap-1 items-center">
-          <span>Address</span>
-          <span className="bg-slate-500 rounded text-gray-200 px-2">{address}</span>
-          <IoShuffleSharp className="cursor-pointer" onClick={() => shuffleAddresses()} />
+          {/* <ReactDataViewer data={[1, 2, "something@other.com", { fasf: "sdfasf", lofdasf: true }]} /> */}
         </div>
-        <div className="flex flex-row gap-1">
-          <span>Port</span>
-          <span className="bg-slate-500 rounded text-gray-200 px-2">3310</span>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 }

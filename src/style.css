@@ -29,7 +29,7 @@ body {
 /* Prevent overscroll/bounce in iOS MobileSafari and Chrome */
 html,
 body {
-  overscroll-behavior-x: none;
+  overscroll-behavior-x: none !important;
   overscroll-behavior: none !important;
 }
 
@@ -119,3 +119,9 @@ button {
     background-color: #0f0f0f98;
   }
 } */
+
+.no-select {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard   syntax */
+}
