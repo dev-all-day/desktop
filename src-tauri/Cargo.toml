@@ -43,6 +43,9 @@ portpicker = "0.1"
 port_scanner = "0.1.5"
 derive_more = "0.99.17"
 
+chrono = "0.4"
+json-patch = "0.3.0"
+
 [features]
 # by default Tauri runs in production mode
 # when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL

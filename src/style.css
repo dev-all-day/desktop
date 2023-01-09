@@ -29,8 +29,10 @@ body {
 /* Prevent overscroll/bounce in iOS MobileSafari and Chrome */
 html,
 body {
-  overscroll-behavior-x: none !important;
-  overscroll-behavior: none !important;
+  overscroll-behavior-x: none;
+  overscroll-behavior: none;
+  background-color: #1e1f21;
+  overflow: hidden; /* this is the only one thaworked */
 }
 
 .container {
@@ -124,4 +126,8 @@ button {
   -webkit-user-select: none; /* Safari */
   -ms-user-select: none; /* IE 10 and IE 11 */
   user-select: none; /* Standard   syntax */
+}
+
+html {
+  overscroll-behavior: none;
 }

@@ -10,6 +10,11 @@ import { IoShuffleSharp } from "react-icons/io5";
 import ReactDataViewer from "react-data-viewer";
 
 function App() {
+
+  const [logs,setLogs] = useState(null);
+  const [states,setState] = useState(null);
+  const [flow,setFlow] = useState(null);
+
   const [greetMsg, setGreetMsg] = useState("");
   const [ip, setIP] = useState("");
   const [name, setName] = useState("");
@@ -115,8 +120,8 @@ function App() {
 
   return (
     <div className="flex-grow flex flex-row overflow-hidden justify-center h-screen overscroll-none">
-      <div className="flex-shrink-0 w-72 bg-[#1e1f21] flex flex-col  border-r border-[#0e0e0f]">
-        <div className="flex flex-col flex-1 p-2 gap-2 hover:scrollbar-thin scrollbar-thumb-[rgba(255,255,255,.05)] scrollbar-track-[#1e1f21] overflow-y-auto">
+      <div className="flex-shrink-0 w-72 bg-[#1e1f21] flex flex-col border-solid border-r-2 border-[#0e0e0f]">
+        <div className="flex flex-col flex-1 p-2 gap-2 scrollbar-thin scrollbar-thumb-[rgba(255,255,255,.05)] scrollbar-track-[#1e1f21] overflow-y-auto">
           <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
             Connection #1
           </div>
@@ -126,39 +131,7 @@ function App() {
           <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
             Connection #1
           </div>
-          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
-            Connection #1
-          </div>
-          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
-            Connection #1
-          </div>
-          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
-            Connection #1
-          </div>
-          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
-            Connection #1
-          </div>
-          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
-            Connection #1
-          </div>
-          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
-            Connection #1
-          </div>
-          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
-            Connection #1
-          </div>
-          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
-            Connection #1
-          </div>
-          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
-            Connection #1
-          </div>
-          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
-            Connection #1
-          </div>
-          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
-            Connection #1
-          </div>
+         
         </div>
 
         <div className="p-2">
@@ -187,7 +160,7 @@ function App() {
       </div>
 
       <div className="flex-1 flex flex-col bg-[#131415]">
-        <div className="text-gray-400 flex flex-row justify-between items-center gap-2 my-2 px-2 font-bold pb-2 border-b border-[#0e0e0f]">
+        <div className="text-gray-400 flex flex-row justify-between items-center gap-2 my-2 px-2 font-bold pb-2 border-b-2 border-[#0e0e0f]">
           {/* <div className="text-white flex flex-row justify-between items-center bg-gray-800 rounded-lg p-2 gap-2"> */}
           <span className="bg-[#1e1f21] p-3 px-4 rounded-md cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21] flex-1 text-center no-select ">
             LOGS
@@ -206,8 +179,12 @@ function App() {
         <div className="flex flex-col gap-2 flex-1 p-2 scrollbar-thin scrollbar-thumb-[rgba(255,255,255,.1)] scrollbar-track-[#131415] hover:scrollbar-thumb-gray-400 overflow-y-auto">
           {events.length > 0
             ? events.map((event: any, index: any) => (
-                <div className="text-gray-400 text-md bg-gray-800 p-4 rounded-md" key={index}>
-                  {event}
+                <div className="flex flex-col text-gray-400 text-md bg-[#1e1f21] p-4 rounded-md gap-2" key={index}>
+                  <div className="flex justify-between items-center">
+                  <span>{JSON.parse(event).time}</span>
+                  <span className="bg-gray-400 text-sm text-[#131415] px-2 rounded cursor-pointer no-select hover:bg-[#131415] hover:text-gray-400">Hide</span>
+                  </div>
+                  <div className="bg-[#131415] p-4 rounded-md">{event}</div>
                 </div>
               ))
             : null}

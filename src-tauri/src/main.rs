@@ -116,16 +116,54 @@ format!("{ip}")
 // }
 #[derive(Debug, Serialize, Deserialize)]
 pub struct APIPayload {
-    group: Option<String>,
+    connection: Option<String>,
+    channel: Option<String>,
+    session: Option<String>,
     state:Option<String>,
-    action:Option<String>,
+    value:Option<String>
+}
+
+// use json_patch::merge;
+
+fn merge(a: &mut Value, b: &Value) {
+    match (a, b) {
+        (&mut Value::Object(ref mut a), &Value::Object(ref b)) => {
+            for (k, v) in b {
+                merge(a.entry(k.clone()).or_insert(Value::Null), v);
+            }
+        }
+        (a, b) => {
+            *a = b.clone();
+        }
+    }
 }
 
 // pub async fn receive(state: web::Data<AppState>,post: web::web::Json<Value>) -> impl Responder {
-pub async fn receive(state: web::Data<AppState>,post: web::Json<APIPayload>) -> impl Responder {
+pub async fn receive(state: web::Data<AppState>,post: web::Json<Value>) -> impl Responder {
 // async fn receive(post: web::Json<APIPayload>) -> Result<HttpResponse, CustomError> {
     //  println!("Uploaded Content: {:#?}", uploaded_content);
-    println!("Group {:#?}", post);
+    println!("Payload {:#?}", post);
+
+    // let mut new_post = post.into_inner();
+    // new_post.time = "hahaha";
+
+    // let mut result = web::Json(new_post);
+    // result.merge(post);
+
+    let now = Local::now();
+    let formatted_time = now.format("%d-%m-%Y %H:%M:%S%.3f").to_string();
+
+    let new_json = json!({ "time": formatted_time });
+    let mut merged_json = post.into_inner();
+    // result.merge(new_json);
+
+    // let merged_json = merge(result, &new_json);
+
+    // let new_data = json!({ "key": "value" });
+    // merged_json.merge(new_json);
+
+    merge(&mut merged_json, &new_json);
+    
 
     // let state = req
     //     .app_data::<Data<AppState>>()
@@ -138,7 +176,7 @@ pub async fn receive(state: web::Data<AppState>,post: web::Json<APIPayload>) -> 
     //  tumira(state,"Hello World".to_string()).await;
 
     // convert json to string
-    let json_str = to_string(&post).unwrap();
+    let json_str = to_string(&merged_json).unwrap();
 
     // Broadcaster::broadcast("Hello HAHAHHAA");
     state.broadcaster.broadcast(&json_str).await;
@@ -149,33 +187,35 @@ pub async fn receive(state: web::Data<AppState>,post: web::Json<APIPayload>) -> 
     //     _ => Err(CustomError::BadClientData)
     // }
 
-    let group = post.group.to_owned();
+    // let connection = post.connection.to_owned();
 
-    // let window: &Window;
+    // // let window: &Window;
 
-    if group.is_none() {
-        HttpResponse::BadRequest().body(json!({
-            "code": 400,
-            "message": "Invalid request",
-            "payload" : {
-                "error":"group is required"
-            }
-        })
-        .to_string())
-    }else{
+    // if connection.is_none() {
+    //     HttpResponse::BadRequest().body(json!({
+    //         "code": 400,
+    //         "message": "Invalid request",
+    //         "payload" : {
+    //             "error":"connection is required"
+    //         }
+    //     })
+    //     .to_string())
+    // }else{
 
         
 
 
-        // rs2js("hello".to_string(),Manager);
+    //     // rs2js("hello".to_string(),Manager);
         
-        // tauri::invoke(shout("API"));
-        // tauri::Invoke("shout", { Inv {phrase: e} });
-        // tauri::Invoke("sfsafsdf", shout);
-        // window.emit("ping", {}).unwrap();
-        HttpResponse::Ok().json(post)
-    }
-    // Err(CustomError::BadClientData)
+    //     // tauri::invoke(shout("API"));
+    //     // tauri::Invoke("shout", { Inv {phrase: e} });
+    //     // tauri::Invoke("sfsafsdf", shout);
+    //     // window.emit("ping", {}).unwrap();
+    //     HttpResponse::Ok().json(post)
+    // }
+    // // Err(CustomError::BadClientData)
+
+    HttpResponse::Ok().json(merged_json)
 
 }
 
@@ -401,7 +441,7 @@ struct PostError {
       InternalError::from_response(err, HttpResponse::BadRequest().json(post_error)).into()
     }
 
-
+use chrono::{Local, DateTime};
 
 #[get("/port")]
 // pub async fn ip() -> Result<HttpResponse, Error> {
@@ -431,10 +471,15 @@ pub async fn getPort() -> impl Responder {
     }
 
 
+    let now = Local::now();
+    let formatted_time = now.format("%d-%m-%Y %H:%M:%S%.3f").to_string();
+
+
      HttpResponse::Ok().content_type("application/json").body(
         json!({
             "port1": format!("Port {} is available to use", special_port1),
             "port2": format!("Port {} is available to use", special_port),
+            "time": format!("{}", formatted_time),
         })
         .to_string(),
     )
