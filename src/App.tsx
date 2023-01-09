@@ -114,51 +114,103 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-graybg">
-      <div className="flex-grow flex flex-row overflow-hidden justify-center">
-        <div className="flex-shrink-0 w-72 p-2 bg-[#1e1f21] flex flex-col gap-2 justify-between">
-          <div className="text-gray-100 bg-[#131415] rounded-md w-full p-3 cursor-pointer hover:bg-gray-500 hover:text-gray-200">
+    <div className="flex-grow flex flex-row overflow-hidden justify-center h-screen overscroll-none">
+      <div className="flex-shrink-0 w-72 bg-[#1e1f21] flex flex-col  border-r border-[#0e0e0f]">
+        <div className="flex flex-col flex-1 p-2 gap-2 hover:scrollbar-thin scrollbar-thumb-[rgba(255,255,255,.05)] scrollbar-track-[#1e1f21] overflow-y-auto">
+          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
             Connection #1
           </div>
-
-          <div className="flex flex-row gap-4 w-full h-10 bg-white justify-center items-center rounded-md text-sm">
-            <div className="flex flex-row gap-1 items-center">
-              <span>Address</span>
-              <span className="bg-slate-500 rounded text-gray-200 px-2">{address}</span>
-              <IoShuffleSharp className="cursor-pointer" onClick={() => shuffleAddresses()} />
-            </div>
-            <div className="flex flex-row gap-1">
-              <span>Port</span>
-              <span className="bg-slate-500 rounded text-gray-200 px-2">3310</span>
-            </div>
+          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
+            Connection #1
+          </div>
+          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
+            Connection #1
+          </div>
+          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
+            Connection #1
+          </div>
+          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
+            Connection #1
+          </div>
+          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
+            Connection #1
+          </div>
+          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
+            Connection #1
+          </div>
+          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
+            Connection #1
+          </div>
+          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
+            Connection #1
+          </div>
+          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
+            Connection #1
+          </div>
+          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
+            Connection #1
+          </div>
+          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
+            Connection #1
+          </div>
+          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
+            Connection #1
+          </div>
+          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
+            Connection #1
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col p-2 bg-[#131415]">
-          <div className="text-white flex flex-row justify-between items-center gap-2 font-bold">
-            {/* <div className="text-white flex flex-row justify-between items-center bg-gray-800 rounded-lg p-2 gap-2"> */}
-            <span className="bg-gray-500 p-3 px-4 rounded cursor-pointer hover:bg-gray-700 flex-1 text-center no-select ">
-              LOGS
-            </span>
-            <span className="bg-gray-500 p-3 px-4 rounded cursor-pointer hover:bg-gray-700 flex-1 text-center no-select ">
-              STATES
-            </span>
-            <span className="bg-gray-500 p-3 px-4 rounded cursor-pointer hover:bg-gray-700 flex-1 text-center no-select ">
-              EVENTS
-            </span>
-            <span className="bg-gray-500 p-3 px-4 rounded cursor-pointer hover:bg-gray-700 flex-1 text-center no-select ">
-              FLOW
-            </span>
+        <div className="p-2">
+          <div className="flex flex-row gap-4  h-10 bg-[#131415] justify-center items-center rounded-md text-sm no-select cursor-default">
+            <div className="flex flex-row gap-1 items-center text-gray-400">
+              <span className="text-[10px] uppercase">Host</span>
+              <span
+                className="bg-[#1e1f21] hover:bg-gray-400 hover:text-[#1e1f21] rounded text-gray-200 px-2 cursor-pointer"
+                title="Click to Copy"
+              >
+                {address}
+              </span>
+              <IoShuffleSharp className="cursor-pointer text-gray-400" onClick={() => shuffleAddresses()} />
+            </div>
+            <div className="flex flex-row gap-1 text-gray-400">
+              <span className="text-[10px] uppercase">Port</span>
+              <span
+                className="bg-[#1e1f21] hover:bg-gray-400 hover:text-[#1e1f21] rounded text-gray-200 px-2 cursor-pointer"
+                title="Click to Copy"
+              >
+                3310
+              </span>
+            </div>
           </div>
-          {events.length > 0 ? (
-            <ul>
-              {events.map((event: any, index: any) => (
-                <li key={index}>{event}</li>
-              ))}
-            </ul>
-          ) : null}
+        </div>
+      </div>
 
-          {/* <ReactDataViewer data={[1, 2, "something@other.com", { fasf: "sdfasf", lofdasf: true }]} /> */}
+      <div className="flex-1 flex flex-col bg-[#131415]">
+        <div className="text-gray-400 flex flex-row justify-between items-center gap-2 my-2 px-2 font-bold pb-2 border-b border-[#0e0e0f]">
+          {/* <div className="text-white flex flex-row justify-between items-center bg-gray-800 rounded-lg p-2 gap-2"> */}
+          <span className="bg-[#1e1f21] p-3 px-4 rounded-md cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21] flex-1 text-center no-select ">
+            LOGS
+          </span>
+          <span className="bg-[#1e1f21] p-3 px-4 rounded-md cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21] flex-1 text-center no-select ">
+            STATES
+          </span>
+          <span className="bg-[#1e1f21] p-3 px-4 rounded-md cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21] flex-1 text-center no-select ">
+            EVENTS
+          </span>
+          <span className="bg-[#1e1f21] p-3 px-4 rounded-md cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21] flex-1 text-center no-select ">
+            FLOW
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-2 flex-1 p-2 scrollbar-thin scrollbar-thumb-[rgba(255,255,255,.1)] scrollbar-track-[#131415] hover:scrollbar-thumb-gray-400 overflow-y-auto">
+          {events.length > 0
+            ? events.map((event: any, index: any) => (
+                <div className="text-gray-400 text-md bg-gray-800 p-4 rounded-md" key={index}>
+                  {event}
+                </div>
+              ))
+            : null}
         </div>
       </div>
     </div>

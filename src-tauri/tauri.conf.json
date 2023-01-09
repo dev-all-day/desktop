@@ -56,11 +56,12 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 800,
         "resizable": true,
         "title": "{dev.all.day}",
-        "width": 800,
-        "visible": false
+        "width": 1400,
+        "visible": false,
+        "titleBarStyle": "Visible"
       },
       {
         "width": 400,
