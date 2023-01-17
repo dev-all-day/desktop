@@ -19,6 +19,16 @@ function App() {
   const [ip, setIP] = useState("");
   const [name, setName] = useState("");
 
+
+  const [connections,setConnections] = useState<string[]>([]);
+  const [selectedConnection,setSelectionConnection] = useState<string>("");
+  const connectionsStateRef = React.useRef(connections);
+
+  const keepTrackOfConnections = (con: any)  => {
+    connectionsStateRef.current = con;
+    setConnections((prev) => [...prev,con]);
+  }
+
   // const addresses: string[] = ["127.0.0.1", "localhost"];
 
   const [addresses, setAddresses] = useState<string[]>(["localhost", "127.0.0.1"]);
@@ -55,6 +65,16 @@ function App() {
   // const inpRef: any = React.useRef(null);
 
   const [events, setEvents] = useState<any>([]);
+  const [filteredEvents, setFilteredEvents] = useState<any>([]);
+
+  React.useEffect(() => {
+    setFilteredEvents(events);
+  }, [events]);
+
+  const selectEvent = (con:any) => {
+    setSelectionConnection(con);
+    setFilteredEvents(events.filter((e:any) => JSON.parse(e).connection === selectedConnection ));
+  }
 
   React.useEffect(() => {
     if (name) shout(name);
@@ -87,6 +107,12 @@ function App() {
       eventSource.onmessage = (event) => {
         console.log(JSON.parse(event.data));
         setEvents((events: any) => [...events, event.data]);
+        const con = JSON.parse(event.data).connection;
+        console.log("connections.includes(con)",!connections.includes(con))
+        console.log("connections",connections)
+        if(!connectionsStateRef.current.includes(con)){
+          keepTrackOfConnections(con);
+        }
       };
 
       // eventSource.onmessage = (event) => {
@@ -122,16 +148,13 @@ function App() {
     <div className="flex-grow flex flex-row overflow-hidden justify-center h-screen overscroll-none">
       <div className="flex-shrink-0 w-72 bg-[#1e1f21] flex flex-col border-solid border-r-2 border-[#0e0e0f]">
         <div className="flex flex-col flex-1 p-2 gap-2 scrollbar-thin scrollbar-thumb-[rgba(255,255,255,.05)] scrollbar-track-[#1e1f21] overflow-y-auto">
-          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
-            Connection #1
-          </div>
-          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
-            Connection #1
-          </div>
-          <div className="text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21]">
-            Connection #1
-          </div>
-         
+          { connections && connections.map((con,key) => {
+          return (
+            <div key={key} onClick={() => selectEvent(con)} className={`text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21] ${con === selectedConnection ? 'bg-gray-400 text-[#1e1f21]':''}`}>
+              {con}
+            </div>
+          )
+          })}
         </div>
 
         <div className="p-2">
@@ -177,8 +200,8 @@ function App() {
         </div>
 
         <div className="flex flex-col gap-2 flex-1 p-2 scrollbar-thin scrollbar-thumb-[rgba(255,255,255,.1)] scrollbar-track-[#131415] hover:scrollbar-thumb-gray-400 overflow-y-auto">
-          {events.length > 0
-            ? events.map((event: any, index: any) => (
+          {filteredEvents.length > 0
+            ? filteredEvents.map((event: any, index: any) => (
                 <div className="flex flex-col text-gray-400 text-md bg-[#1e1f21] p-4 rounded-md gap-2" key={index}>
                   <div className="flex justify-between items-center">
                   <span>{JSON.parse(event).time}</span>

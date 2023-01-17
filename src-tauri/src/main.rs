@@ -31,7 +31,7 @@ use serde_json::json;
 use serde_json::{to_string, Value};
 use json::JsonValue;
 use port_scanner::local_ports_available_range;
-use tauri::{CustomMenuItem, Menu, MenuItem, Submenu,Manager,SystemTray,SystemTrayMenu, SystemTrayMenuItem, SystemTrayEvent};
+use tauri::{AppHandle,CustomMenuItem, Menu, MenuItem, Submenu,Manager,SystemTray,SystemTrayMenu, SystemTrayMenuItem, SystemTrayEvent,WindowMenuEvent};
 use actix_files::Files;
 use handlebars::Handlebars;
 use actix_cors::Cors;
@@ -151,9 +151,10 @@ pub async fn receive(state: web::Data<AppState>,post: web::Json<Value>) -> impl 
     // result.merge(post);
 
     let now = Local::now();
-    let formatted_time = now.format("%d-%m-%Y %H:%M:%S%.3f").to_string();
+    let log_date= now.format("%d-%m-%Y").to_string();
+    let log_time = now.format("%H:%M:%S%.3f").to_string();
 
-    let new_json = json!({ "time": formatted_time });
+    let new_json = json!({ "date": log_date,"time": log_time });
     let mut merged_json = post.into_inner();
     // result.merge(new_json);
 
@@ -219,122 +220,71 @@ pub async fn receive(state: web::Data<AppState>,post: web::Json<Value>) -> impl 
 
 }
 
+use tauri_plugin_positioner::{on_tray_event, Position, WindowExt};
+
+#[cfg(target_os = "macos")]
+use tauri::AboutMetadata;
+
+
+
+
+mod app;
+mod conf;
+mod utils;
+
+use app::{menu,setup};
+use conf::ChatConfJson;
+
 fn main() {
   
     thread::spawn(move || {
         let _ = start_server();
     });
 
+    let context = tauri::generate_context!();
 
-    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-let close = CustomMenuItem::new("close".to_string(), "Close");
-let submenu = Submenu::new("File", Menu::new().add_item(quit).add_item(close));
-let menu = Menu::new()
-  .add_native_item(MenuItem::Copy)
-  .add_item(CustomMenuItem::new("hide", "Hide"))
-  .add_submenu(submenu);
+    let chat_conf = ChatConfJson::get_chat_conf();
 
-// here `"quit".to_string()` defines the menu item id, and the second parameter is the menu item label.
-let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-let hide = CustomMenuItem::new("hide".to_string(), "Hide");
-let show = CustomMenuItem::new("show".to_string(), "Show");
-let tray_menu = SystemTrayMenu::new()
-  .add_item(quit)
-  .add_native_item(SystemTrayMenuItem::Separator)
-  .add_item(hide)
-  .add_item(show);
+    let mut builder = tauri::Builder::default()
+        .menu(menu::init())
+        .system_tray(menu::tray_menu())
+        .on_menu_event(menu::menu_handler)
+        .on_system_tray_event(menu::tray_handler)
+        .on_window_event(|event| {
+            // https://github.com/tauri-apps/tauri/discussions/2684
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event.event() {
+                let win = event.window();
+                if win.label() == "main" {
+                    // TODO: https://github.com/tauri-apps/tauri/issues/3084
+                    // event.window().hide().unwrap();
+                    // https://github.com/tauri-apps/tao/pull/517
+                    #[cfg(target_os = "macos")]
+                    event.window().minimize().unwrap();
 
-//   let tray = SystemTray::new().with_menu(tray_menu);
-    let system_tray = SystemTray::new()
-    .with_menu(tray_menu);
-
-    tauri::Builder::default()
-        .menu(menu)
-        .system_tray(system_tray)
-        .on_system_tray_event(|app, event| match event {
-            // SystemTrayEvent::MenuItemClick { id, .. } => {
-            //     // get a handle to the clicked menu item
-            //     // note that `tray_handle` can be called anywhere,
-            //     // just get an `AppHandle` instance with `app.handle()` on the setup hook
-            //     // and move it to another function or thread
-            //     let item_handle = app.tray_handle().get_item(&id);
-            //     match id.as_str() {
-            //     "hide" => {
-            //         let window = app.get_window("main").unwrap();
-            //         window.hide().unwrap();
-            //         // you can also `set_selected`, `set_enabled` and `set_native_image` (macOS only).
-            //         item_handle.set_title("Show").unwrap();
-            //     }
-            //     "show" => {
-            //         let window = app.get_window("main").unwrap();
-            //         window.show().unwrap();
-            //     }
-            //     _ => {}
-            //     }
-            // }
-            SystemTrayEvent::LeftClick {
-                position: _,
-                size: _,
-                ..
-            } => {
-                println!("system tray received a left click");
-            }
-            SystemTrayEvent::RightClick {
-                position: _,
-                size: _,
-                ..
-            } => {
-                println!("system tray received a right click");
-            }
-            SystemTrayEvent::DoubleClick {
-                position: _,
-                size: _,
-                ..
-            } => {
-                println!("system tray received a double click");
-            }
-            SystemTrayEvent::MenuItemClick { id, .. } => {
-                match id.as_str() {
-                "quit" => {
-                    std::process::exit(0);
+                    // fix: https://github.com/lencx/ChatGPT/issues/93
+                    #[cfg(not(target_os = "macos"))]
+                    event.window().hide().unwrap();
+                } else {
+                    win.close().unwrap();
                 }
-                "hide" => {
-                    let window = app.get_window("main").unwrap();
-                    window.hide().unwrap();
-                }
-                "show" => {
-                    let window = app.get_window("main").unwrap();
-                    window.show().unwrap();
-                }
-                _ => {}
-                }
+                api.prevent_close();
             }
-            _ => {}
-            })
-        .setup(|app| {
-            let splashscreen_window = app.get_window("splashscreen").unwrap();
-            let main_window = app.get_window("main").unwrap();
-            // we perform the initialization code on a new task so the app doesn't freeze
-            tauri::async_runtime::spawn(async move {
-                // initialize your app here instead of sleeping :)
-                println!("Initializing...");
-                std::thread::sleep(std::time::Duration::from_secs(3));
-                println!("Done initializing.");
-
-                // After it's done, close the splashscreen and display the main window
-                splashscreen_window.close().unwrap();
-                main_window.show().unwrap();
-            });
-            Ok(())
         })
-        .invoke_handler(tauri::generate_handler![close_splashscreen])
-        .invoke_handler(tauri::generate_handler![greet,shout,my_ip])
+        .setup(setup::init);
         // .invoke_handler(tauri::generate_handler![shout])
         // .invoke_handler(tauri::generate_handler![my_ip])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        // .run(context)
+        // .expect("error while running {dev.all.day} application");
 
-   
+    // if chat_conf.tray {
+    //     builder = builder.system_tray(menu::tray_menu());
+    // }
+
+    builder
+        .invoke_handler(tauri::generate_handler![close_splashscreen])
+        .invoke_handler(tauri::generate_handler![greet,shout,my_ip])
+        .run(context)
+        .expect("error while running {dev.all.day} application");
 
 }
 
