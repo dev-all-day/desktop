@@ -383,25 +383,45 @@ pub fn menu_handler(event: WindowMenuEvent<tauri::Wry>) {
 
 // --- SystemTray Menu
 pub fn tray_menu() -> SystemTray {
+
+    let mut menu_config = SystemTrayMenu::new()
+                            .add_item(CustomMenuItem::new(
+                                "control_center".to_string(),
+                                "Control Center",
+                            ));
+
+    menu_config = menu_config.add_native_item(SystemTrayMenuItem::Separator);
+    menu_config = menu_config.add_item(CustomMenuItem::new("show_main_window".to_string(), "Show App"))
+    .add_native_item(SystemTrayMenuItem::Separator)
+    .add_item(CustomMenuItem::new("quit".to_string(), "Quit App"));
+
     if cfg!(target_os = "macos") {
-        SystemTray::new().with_menu(
-            SystemTrayMenu::new()
-                .add_item(CustomMenuItem::new(
-                    "control_center".to_string(),
-                    "Control Center",
-                ))
-                .add_native_item(SystemTrayMenuItem::Separator)
-                // .add_item(CustomMenuItem::new(
-                //     "show_dock_icon".to_string(),
-                //     "Show Dock Icon",
-                // ))
-                // .add_item(CustomMenuItem::new(
-                //     "hide_dock_icon".to_string(),
-                //     "Hide Dock Icon",
-                // ))
-                .add_item(CustomMenuItem::new("show_main_window".to_string(), "Show App"))
-                .add_native_item(SystemTrayMenuItem::Separator)
-                .add_item(CustomMenuItem::new("quit".to_string(), "Quit App")),
+        SystemTray::new().with_menu(menu_config
+            // SystemTrayMenu::new()
+            //     .add_item(CustomMenuItem::new(
+            //         "control_center".to_string(),
+            //         "Control Center",
+            //     ))
+            //     .add_native_item(SystemTrayMenuItem::Separator)
+            //     .add_item(CustomMenuItem::new("show_main_window".to_string(), "Help & Support".to_string()))
+            //     .add_item(CustomMenuItem::new("show_main_window".to_string(), "Keyboard Shortcuts"))
+            //     .add_native_item(SystemTrayMenuItem::Separator)
+            //     .add_item(CustomMenuItem::new("show_main_window".to_string(), "Show App Folder"))
+            //     .add_item(CustomMenuItem::new("show_main_window".to_string(), "Show Software License"))
+            //     .add_item(CustomMenuItem::new("move_window".to_string(), "Changelog"))
+            //     .add_item(CustomMenuItem::new("move_window".to_string(), "Move WIndow"))
+            //     .add_native_item(SystemTrayMenuItem::Separator)
+            //     // .add_item(CustomMenuItem::new(
+            //     //     "show_dock_icon".to_string(),
+            //     //     "Show Dock Icon",
+            //     // ))
+            //     // .add_item(CustomMenuItem::new(
+            //     //     "hide_dock_icon".to_string(),
+            //     //     "Hide Dock Icon",
+            //     // ))
+            //     .add_item(CustomMenuItem::new("show_main_window".to_string(), "Show App"))
+            //     .add_native_item(SystemTrayMenuItem::Separator)
+            //     .add_item(CustomMenuItem::new("quit".to_string(), "Quit App")),
         )
     } else {
         SystemTray::new().with_menu(
@@ -419,7 +439,7 @@ pub fn tray_menu() -> SystemTray {
 
 // --- SystemTray Event
 pub fn tray_handler(handle: &AppHandle, event: SystemTrayEvent) {
-    on_tray_event(handle, &event);
+    // on_tray_event(handle, &event);
 
     let app = handle.clone();
 
@@ -464,6 +484,12 @@ pub fn tray_handler(handle: &AppHandle, event: SystemTrayEvent) {
                     core_win.set_focus().unwrap();
                     // tray_win.hide().unwrap();
                 }
+            }
+            "move_window" => {
+                let main_win = app.get_window("main").unwrap();
+                // let tray_win = handle.get_window("tray").unwrap();
+                main_win.move_window(Position::TopRight).unwrap();
+
             }
             "quit" => std::process::exit(0),
             _ => (),

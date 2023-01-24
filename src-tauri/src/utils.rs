@@ -97,7 +97,7 @@ pub fn open_file(path: PathBuf) {
 pub fn clear_conf(app: &tauri::AppHandle) {
     let root = chat_root();
     let app2 = app.clone();
-    let msg = format!("Path: {}\nAre you sure to clear all ChatGPT configurations? Please backup in advance if necessary!", root.to_string_lossy());
+    let msg = format!("Path: {}\n\nAre you sure to clear all {} configurations? Please backup first if necessary!", root.to_string_lossy(),"{dev.all.day}".to_string());
     tauri::api::dialog::ask(
         app.get_window("main").as_ref(),
         "Clear Config",

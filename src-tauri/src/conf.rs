@@ -194,5 +194,6 @@ impl ChatConfJson {
         } else {
             TitleBarStyle::Overlay
         }
+
     }
 }

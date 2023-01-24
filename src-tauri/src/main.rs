@@ -311,7 +311,7 @@ async fn start_server() -> std::io::Result<()> {
         Data::new(handlebars)
     };
 
-    let server_addr = "127.0.0.1";
+    let server_addr = my_ip();
     let server_port = 3310;
 
    
@@ -370,7 +370,7 @@ async fn start_server() -> std::io::Result<()> {
     // .workers(2)
     .bind((server_addr, server_port))?
     .run();
-    println!("Server running at http://{server_addr}:{server_port}/");
+    // println!("Server running at http://{}:{server_port}/",server_addr);
     app.await
 }
 
