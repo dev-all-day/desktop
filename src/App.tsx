@@ -6,10 +6,54 @@ import { open } from "@tauri-apps/api/shell";
 import "./App.css";
 
 import { IoShuffleSharp } from "react-icons/io5";
-// @ts-ignore
-import ReactDataViewer from "react-data-viewer";
+
+import { TConfig } from "./types/config";
+import { SSE } from "./types/enums";
+import { DataViewer, Menu } from "./components/layout";
+import { useAppDispatch, useAppSelector } from "./redux/hooks";
+import { getPreferences } from "./commands";
+import { setPreferences } from "./redux/slices/configSlice";
+
+import { appWindow } from '@tauri-apps/api/window';
+
 
 function App() {
+
+  const dispatch = useAppDispatch();
+  const { preferences } = useAppSelector((state: any) => state.config);
+
+  type TPayload = {
+    event:any;
+    payload:string;
+  }
+
+  useEffect(() => {
+    (async() => {
+
+      if(!preferences) {
+        const prefs = await getPreferences();
+        dispatch(setPreferences(prefs));
+      }
+
+      await appWindow.listen(
+        'PROGRESS',
+        ({event, payload}:TPayload) => {
+          // console.log(payload)
+          // console.log(JSON.parse(payload));
+          setEvents((events: any) => [...events, payload]);
+          // const con = JSON.parse(payload).connection;
+          // console.log("connections.includes(con)",!connections.includes(con),con)
+          // console.log("connections",connections)
+          // if(!connections.includes(con)){
+          //   // console.log("con",con)
+          //   setConnections((prev:any) => [...connections,con]);
+          // }
+        }
+      );
+
+    })()
+    
+  },[])
 
   const [logs,setLogs] = useState(null);
   const [states,setState] = useState(null);
@@ -17,48 +61,38 @@ function App() {
 
   const [greetMsg, setGreetMsg] = useState("");
   const [ip, setIP] = useState("");
+  const [port, setPort] = useState("");
   const [name, setName] = useState("");
 
+  const [config, setConfig] = useState<TConfig|null>(null);
 
-  const [connections,setConnections] = useState<string[]>([]);
-  const [selectedConnection,setSelectionConnection] = useState<string>("");
-  const connectionsStateRef = React.useRef(connections);
+  const [sseConnection, setSSEConnection] = useState<SSE>(SSE.IDLE);
 
-  const keepTrackOfConnections = (con: any)  => {
-    connectionsStateRef.current = con;
-    setConnections((prev) => [...prev,con]);
-  }
+  const [connections,setConnections] = useState<string[]|unknown[]>([]);
+  const [selectedConnection,setSelectedConnection] = useState<string>("");
 
-  // const addresses: string[] = ["127.0.0.1", "localhost"];
+  const [serverRunning,setServerRunning] = useState<boolean>(false);
+  // const connectionsStateRef = React.useRef(connections);
 
-  const [addresses, setAddresses] = useState<string[]>(["localhost", "127.0.0.1"]);
-  const [address, setAddress] = useState<any>(addresses[0]);
+  // const keepTrackOfConnections = (con: any)  => {
+  //   connectionsStateRef.current = con;
+  //   setConnections((prev) => [...prev,con]);
+  // }
 
   const theme = useContext(ThemeContext);
+ 
+  async function do_some_long_task() {
+    await invoke("do_some_long_task");
+  }
+  async function is_server_running() {
+    setServerRunning(await invoke("is_server_running"));
+  }
 
-  const shuffleAddresses = () => {
-    setAddress((currentAddress: string) => {
-      const total = addresses.length;
-      const currentIndex = addresses.indexOf(currentAddress);
-      if (currentIndex !== -1) {
-        if (currentIndex + 1 === total) {
-          return addresses[0];
-        } else {
-          return addresses[currentIndex + 1];
-        }
-      } else {
-        return currentAddress;
-      }
-    });
-  };
-
-  async function greet(e: string) {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name: e }));
+  async function start_my_server() {
+    await invoke("start_my_server");
   }
 
   async function shout(e: string) {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     setGreetMsg(await invoke("shout", { phrase: e }));
   }
 
@@ -69,11 +103,13 @@ function App() {
 
   React.useEffect(() => {
     setFilteredEvents(events);
+    const cons : string[]|unknown[] = [...new Set(events.map((item:any) => JSON.parse(item).connection))];
+    setConnections(cons);
   }, [events]);
 
   const selectEvent = (con:any) => {
-    setSelectionConnection(con);
-    setFilteredEvents(events.filter((e:any) => JSON.parse(e).connection === selectedConnection ));
+    setSelectedConnection(con);
+    setFilteredEvents(events.filter((e:any) => JSON.parse(e).connection === con ));
   }
 
   React.useEffect(() => {
@@ -87,21 +123,28 @@ function App() {
     setIP(await invoke("my_ip"));
   }
 
+  async function getConfig() {
+    setConfig(await invoke("cmd_get_config"));
+  }
+
+  async function getPort() {
+    console.log("getPort")
+    setPort(await invoke("my_port"));
+  }
+
   React.useEffect(() => {
-    getIP();
+    if(!ip) getIP();
+    if(!port) getPort();
+    getConfig();
   }, []);
 
-  React.useEffect(() => {
-    if (ip && addresses.length < 3 && ip !== "127.0.0.1") setAddresses((addresses: any) => addresses.concat(ip));
-  }, [ip]);
-
-  useEffect(() => {
-    if ("EventSource" in window) {
-      const eventSource = new EventSource("http://127.0.0.1:3310/events");
+  const handleSSE = () => {
+    if ("EventSource" in window && config) {
+      const eventSource = new EventSource(`http://127.0.0.1:${config.port}/events`);
 
       eventSource.onopen = () => {
-        // setEvents((events: any) => events.concat("Connection Opened"));
         console.log("Connection Opened");
+        setSSEConnection(SSE.CONNECTION_ESTABLISHED);
       };
 
       eventSource.onmessage = (event) => {
@@ -110,8 +153,8 @@ function App() {
         const con = JSON.parse(event.data).connection;
         console.log("connections.includes(con)",!connections.includes(con))
         console.log("connections",connections)
-        if(!connectionsStateRef.current.includes(con)){
-          keepTrackOfConnections(con);
+        if(!connections.includes(con)){
+          setConnections((prev) => [...prev,con]);
         }
       };
 
@@ -123,31 +166,30 @@ function App() {
 
       eventSource.onerror = (event) => {
         console.error(event);
+        eventSource.close();
+        setSSEConnection(SSE.CONNECTION_ERROR);
       };
 
       return () => {
         eventSource.close();
+        setSSEConnection(SSE.IDLE);
       };
     } else {
       // throw fatal error
+      console.log("Could not connect to SSE")
+      setSSEConnection(SSE.CONNECTION_ERROR);
     }
-  }, []);
+  }
 
-  const Logo = () => {
-    return (
-      <span style={{ color: "rgb(104, 149, 242)" }} className="text-2xl">
-        {/* <span style={{ display: "flex", justifyContent: "center", alignContent: "center", color: "rgb(104, 149, 242)" }}> */}
-        <span>{"{"}</span>
-        <span>dev.all.day</span>
-        <span>{"}"}</span>
-      </span>
-    );
-  };
+  React.useEffect(() => {
+    // if(config) handleSSE()
+  }, [config]);
 
   return (
     <div className="flex-grow flex flex-row overflow-hidden justify-center h-screen overscroll-none">
       <div className="flex-shrink-0 w-72 bg-[#1e1f21] flex flex-col border-solid border-r-2 border-[#0e0e0f]">
         <div className="flex flex-col flex-1 p-2 gap-2 scrollbar-thin scrollbar-thumb-[rgba(255,255,255,.05)] scrollbar-track-[#1e1f21] overflow-y-auto">
+         
           { connections && connections.map((con,key) => {
           return (
             <div key={key} onClick={() => selectEvent(con)} className={`text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21] ${con === selectedConnection ? 'bg-gray-400 text-[#1e1f21]':''}`}>
@@ -155,6 +197,7 @@ function App() {
             </div>
           )
           })}
+
         </div>
 
         <div className="p-2">
@@ -165,9 +208,9 @@ function App() {
                 className="bg-[#1e1f21] hover:bg-gray-400 hover:text-[#1e1f21] rounded text-gray-200 px-2 cursor-pointer"
                 title="Click to Copy"
               >
-                {address}
+                {ip}
               </span>
-              <IoShuffleSharp className="cursor-pointer text-gray-400" onClick={() => shuffleAddresses()} />
+              {/* <IoShuffleSharp className="cursor-pointer text-gray-400" onClick={() => shuffleAddresses()} /> */}
             </div>
             <div className="flex flex-row gap-1 text-gray-400">
               <span className="text-[10px] uppercase">Port</span>
@@ -175,7 +218,7 @@ function App() {
                 className="bg-[#1e1f21] hover:bg-gray-400 hover:text-[#1e1f21] rounded text-gray-200 px-2 cursor-pointer"
                 title="Click to Copy"
               >
-                3310
+                {preferences && preferences.port}
               </span>
             </div>
           </div>
@@ -183,34 +226,13 @@ function App() {
       </div>
 
       <div className="flex-1 flex flex-col bg-[#131415]">
-        <div className="text-gray-400 flex flex-row justify-between items-center gap-2 my-2 px-2 font-bold pb-2 border-b-2 border-[#0e0e0f]">
-          {/* <div className="text-white flex flex-row justify-between items-center bg-gray-800 rounded-lg p-2 gap-2"> */}
-          <span className="bg-[#1e1f21] p-3 px-4 rounded-md cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21] flex-1 text-center no-select ">
-            LOGS
-          </span>
-          <span className="bg-[#1e1f21] p-3 px-4 rounded-md cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21] flex-1 text-center no-select ">
-            STATES
-          </span>
-          <span className="bg-[#1e1f21] p-3 px-4 rounded-md cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21] flex-1 text-center no-select ">
-            EVENTS
-          </span>
-          <span className="bg-[#1e1f21] p-3 px-4 rounded-md cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21] flex-1 text-center no-select ">
-            FLOW
-          </span>
-        </div>
-
+        <Menu/>
         <div className="flex flex-col gap-2 flex-1 p-2 scrollbar-thin scrollbar-thumb-[rgba(255,255,255,.1)] scrollbar-track-[#131415] hover:scrollbar-thumb-gray-400 overflow-y-auto">
-          {filteredEvents.length > 0
-            ? filteredEvents.map((event: any, index: any) => (
-                <div className="flex flex-col text-gray-400 text-md bg-[#1e1f21] p-4 rounded-md gap-2" key={index}>
-                  <div className="flex justify-between items-center">
-                  <span>{JSON.parse(event).time}</span>
-                  <span className="bg-gray-400 text-sm text-[#131415] px-2 rounded cursor-pointer no-select hover:bg-[#131415] hover:text-gray-400">Hide</span>
-                  </div>
-                  <div className="bg-[#131415] p-4 rounded-md">{event}</div>
-                </div>
-              ))
-            : null}
+          {/* <p className="text-white">{JSON.stringify(preferences,null,2)}</p> */}
+          <p className="text-white">Server Running: {JSON.stringify(serverRunning)}</p>
+          {/* <button onClick={() => do_some_long_task()}>Click here</button> */}
+          <button onClick={() => start_my_server()}>Start Server</button>
+          <DataViewer filteredEvents={filteredEvents}/>
         </div>
       </div>
     </div>

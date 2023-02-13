@@ -28,7 +28,8 @@ pub const DEFAULT_CHAT_CONF: &str = r#"{
     "default_origin": "https://chat.openai.com",
     "origin": "https://chat.openai.com",
     "ua_window": "",
-    "ua_tray": ""
+    "ua_tray": "",
+    "port": 3310
 }"#;
 pub const DEFAULT_CHAT_CONF_MAC: &str = r#"{
     "stay_on_top": false,
@@ -41,7 +42,8 @@ pub const DEFAULT_CHAT_CONF_MAC: &str = r#"{
     "default_origin": "https://chat.openai.com",
     "origin": "https://chat.openai.com",
     "ua_window": "",
-    "ua_tray": ""
+    "ua_tray": "",
+    "port": 3310
 }"#;
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
@@ -60,6 +62,7 @@ pub struct ChatConfJson {
     pub origin: String,
     pub ua_window: String,
     pub ua_tray: String,
+    pub port: u16,
     pub global_shortcut: Option<String>,
 }
 

@@ -6,6 +6,8 @@
 // #![allow(unused)] // silence unused warnings while learning
 
 mod routes;
+mod errors;
+mod custom_error_handler;
 // mod ws;
 
 use std::net::{TcpListener, Ipv4Addr, IpAddr, TcpStream};
@@ -33,11 +35,34 @@ use tauri::{AppHandle,CustomMenuItem, Menu, MenuItem, Submenu,Manager,SystemTray
 use actix_files::Files;
 use handlebars::Handlebars;
 use actix_cors::Cors;
+use errors::error_handlers;
 // mod err_handler;
 
+// sse
+mod broadcast;
+use self::broadcast::Broadcaster;
+use std::{io, sync::Arc};
+use actix_web_lab::extract::Path;
+
+
+// SSE 
 pub struct  AppState{
-    server_running: bool,
+    broadcaster:Arc<Broadcaster>,
     window: Window
+}
+
+// SSE
+pub async fn sse_client(state: web::Data<AppState>) -> impl Responder {
+    println!("in api");
+    state.broadcaster.new_client().await
+}
+
+pub async fn broadcast_msg(
+    state: web::Data<AppState>,
+    Path((msg,)): Path<(String,)>,
+) -> impl Responder {
+    state.broadcaster.broadcast(&msg).await;
+    HttpResponse::Ok().body("msg sent")
 }
 
 // This command must be async so that it doesn't run on the main thread.
@@ -51,6 +76,7 @@ async fn close_splashscreen(window: tauri::Window) {
   window.get_window("main").unwrap().show().unwrap();
 }
 
+// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust API!", name)
@@ -74,6 +100,7 @@ fn my_ip() -> String {
   
 }
 
+
 // PORT
 fn is_port_in_use(port: u16) -> bool {
     match TcpStream::connect(("127.0.0.1", port)) {
@@ -91,13 +118,6 @@ fn do_some_long_task(window: Window){
 }
 
 #[tauri::command]
-fn is_server_running(window: Window) -> bool{
-    // let state = window.state().clone();
-    // .server_running
-    true
-}
-
-#[tauri::command]
 fn start_my_server(window: Window){
     thread::spawn(move || {
         let _ = start_server(window);
@@ -110,7 +130,7 @@ fn available_port(port: u16) -> u16 {
 
     if is_port_in_use(port) {
         // Port is already in use.
-        // print!("Port {port} is already in use.");
+        print!("Port {port} is already in use.");
         loop {
             let addr = format!("127.0.0.1:{}", port);
             match TcpStream::connect(&addr) {
@@ -119,7 +139,7 @@ fn available_port(port: u16) -> u16 {
                 },
                 Err(_) => {
                     // Another Port is available!
-                    // print!("Another port {port} is available!");
+                    print!("Another port {port} is available!");
                     return port;
                 }
             }
@@ -127,7 +147,7 @@ fn available_port(port: u16) -> u16 {
 
     } else {
         // Port is available.
-        // print!("Port {port} is available.");
+        print!("Port {port} is available.");
         port
 
     }
@@ -199,6 +219,8 @@ pub async fn receive(state: web::Data<AppState>,post: web::Json<Value>) -> impl 
     // convert json to string
     let json_str = to_string(&merged_json).unwrap();
 
+    state.broadcaster.broadcast(&json_str).await;
+
     // let mut dd: String = String::from("Hello World");
     state.window.emit("PROGRESS", &json_str).unwrap();
 
@@ -266,7 +288,7 @@ fn main() {
 
     builder
         .invoke_handler(tauri::generate_handler![close_splashscreen])
-        .invoke_handler(tauri::generate_handler![greet,shout,my_ip,my_port,cmd_get_config,do_some_long_task,start_my_server,is_server_running])
+        .invoke_handler(tauri::generate_handler![greet,shout,my_ip,my_port,cmd_get_config,do_some_long_task,start_my_server])
         .run(context)
         .expect("error while running {dev.all.day} application");
 
@@ -282,6 +304,8 @@ fn add_error_header<B>(mut res: dev::ServiceResponse<B>) -> Result<ErrorHandlerR
 
 #[actix_rt::main]
 async fn start_server(window: Window) -> std::io::Result<()> {
+
+    let broadcaster = Broadcaster::create();
 
     let template_service = {
         let mut handlebars = Handlebars::new();
@@ -301,7 +325,7 @@ async fn start_server(window: Window) -> std::io::Result<()> {
     let mut server_port = 0;
 
     let state = web::Data::new(AppState {
-        server_running: false,
+        broadcaster: Arc::clone(&broadcaster), 
         window
     });
 
@@ -314,7 +338,15 @@ async fn start_server(window: Window) -> std::io::Result<()> {
 
     let app = HttpServer::new(move || {
 
+        
+
+
+        // let cors = Cors::default()
         let cors = Cors::default()
+            // .allowed_origin("//localhost")
+            // .allowed_origin("//127.0.0.1")
+            // .send_wildcard()
+            // .allowed_origin("*")
             .allow_any_origin()
             .allowed_methods(vec!["GET", "POST","OPTIONS"])
             .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
@@ -326,6 +358,9 @@ async fn start_server(window: Window) -> std::io::Result<()> {
             .wrap(ErrorHandlers::new().handler(StatusCode::INTERNAL_SERVER_ERROR, add_error_header))
             .app_data(template_service.clone())
             .app_data(state.clone())
+            // .app_data(web::Data::new(AppState {
+            //     broadcaster: Arc::clone(&broadcaster)
+            // }))
             .service(Files::new("/public", "src/web/public").show_files_listing())
             .service(routes::index)
             // .service(web::resource("/").route(web::get().to(HttpResponse::InternalServerError)))
@@ -341,7 +376,10 @@ async fn start_server(window: Window) -> std::io::Result<()> {
                 // .route(web::post().to(|item: web::Data<AppState>| receive(state,item,window))
             )
              // This route is used to listen events/ sse events
+            .route("/events", web::get().to(sse_client))
+            // .route("/events{_:/?}", web::get().to(sse_client))
             // This route will create notification
+            .route("/events/{msg}", web::get().to(broadcast_msg))
             // .route("/", web::get().to(compliment))
             // .route("/ip", web::get().to(ip))
     })

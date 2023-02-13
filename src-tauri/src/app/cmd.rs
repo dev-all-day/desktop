@@ -1,5 +1,5 @@
 use crate::{
-    app::{fs_extra, window},
+    // app::{fs_extra, window},
     conf::{ChatConfJson, GITHUB_PROMPTS_CSV_URL},
     utils::{self, chat_root, create_file},
 };
@@ -32,22 +32,6 @@ pub fn fullscreen(app: AppHandle) {
     } else {
         win.set_fullscreen(true).unwrap();
     }
-}
-
-#[command]
-pub fn download(_app: AppHandle, name: String, blob: Vec<u8>) {
-    let path = chat_root().join(PathBuf::from(name));
-    create_file(&path).unwrap();
-    fs::write(&path, blob).unwrap();
-    utils::open_file(path);
-}
-
-#[command]
-pub fn save_file(_app: AppHandle, name: String, content: String) {
-    let path = chat_root().join(PathBuf::from(name));
-    create_file(&path).unwrap();
-    fs::write(&path, content).unwrap();
-    utils::open_file(path);
 }
 
 #[command]

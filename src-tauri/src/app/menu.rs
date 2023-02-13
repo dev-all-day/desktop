@@ -51,46 +51,46 @@ pub fn init() -> Menu {
     let update_silent = CustomMenuItem::new("update_silent".to_string(), "Silent");
     let _update_disable = CustomMenuItem::new("update_disable".to_string(), "Disable");
 
-    let popup_search = CustomMenuItem::new("popup_search".to_string(), "Pop-up Search");
-    let popup_search_menu = if chat_conf.popup_search {
-        popup_search.selected()
-    } else {
-        popup_search
-    };
+    // let popup_search = CustomMenuItem::new("popup_search".to_string(), "Pop-up Search");
+    // let popup_search_menu = if chat_conf.popup_search {
+    //     popup_search.selected()
+    // } else {
+    //     popup_search
+    // };
 
-    #[cfg(target_os = "macos")]
-    let titlebar =
-        CustomMenuItem::new("titlebar".to_string(), "Titlebar").accelerator("CmdOrCtrl+B");
-    #[cfg(target_os = "macos")]
-    let titlebar_menu = if chat_conf.titlebar {
-        titlebar.selected()
-    } else {
-        titlebar
-    };
+    // #[cfg(target_os = "macos")]
+    // let titlebar =
+    //     CustomMenuItem::new("titlebar".to_string(), "Titlebar").accelerator("CmdOrCtrl+B");
+    // #[cfg(target_os = "macos")]
+    // let titlebar_menu = if chat_conf.titlebar {
+    //     titlebar.selected()
+    // } else {
+    //     titlebar
+    // };
 
-    let system_tray = CustomMenuItem::new("system_tray".to_string(), "System Tray");
-    let system_tray_menu = if chat_conf.tray {
-        system_tray.selected()
-    } else {
-        system_tray
-    };
+    // let system_tray = CustomMenuItem::new("system_tray".to_string(), "System Tray");
+    // let system_tray_menu = if chat_conf.tray {
+    //     system_tray.selected()
+    // } else {
+    //     system_tray
+    // };
 
     let preferences_menu = Submenu::new(
         "Preferences",
         Menu::with_items([
-            CustomMenuItem::new("control_center".to_string(), "Control Center")
+            CustomMenuItem::new("control_center".to_string(), "App Settings")
                 .accelerator("CmdOrCtrl+Shift+P")
                 .into(),
             MenuItem::Separator.into(),
             stay_on_top_menu.into(),
-            #[cfg(target_os = "macos")]
-            titlebar_menu.into(),
-            #[cfg(target_os = "macos")]
-            CustomMenuItem::new("hide_dock_icon".to_string(), "Hide Dock Icon").into(),
-            system_tray_menu.into(),
-            CustomMenuItem::new("inject_script".to_string(), "Inject Script")
-                .accelerator("CmdOrCtrl+J")
-                .into(),
+            // #[cfg(target_os = "macos")]
+            // titlebar_menu.into(),
+            // #[cfg(target_os = "macos")]
+            // CustomMenuItem::new("hide_dock_icon".to_string(), "Hide Dock Icon").into(),
+            // system_tray_menu.into(),
+            // CustomMenuItem::new("inject_script".to_string(), "Inject Script")
+            //     .accelerator("CmdOrCtrl+J")
+            //     .into(),
             MenuItem::Separator.into(),
             Submenu::new(
                 "Theme",
@@ -132,23 +132,23 @@ pub fn init() -> Menu {
             )
             .into(),
             MenuItem::Separator.into(),
-            popup_search_menu.into(),
-            CustomMenuItem::new("sync_prompts".to_string(), "Sync Prompts").into(),
-            MenuItem::Separator.into(),
+            // popup_search_menu.into(),
+            // CustomMenuItem::new("sync_prompts".to_string(), "Sync Prompts").into(),
+            // MenuItem::Separator.into(),
             CustomMenuItem::new("go_conf".to_string(), "Go to Config")
                 .accelerator("CmdOrCtrl+Shift+G")
                 .into(),
             CustomMenuItem::new("clear_conf".to_string(), "Clear Config")
                 .accelerator("CmdOrCtrl+Shift+D")
                 .into(),
-            CustomMenuItem::new("restart".to_string(), "Restart ChatGPT")
+            CustomMenuItem::new("restart".to_string(), "Restart App")
                 .accelerator("CmdOrCtrl+Shift+R")
                 .into(),
             MenuItem::Separator.into(),
-            CustomMenuItem::new("awesome".to_string(), "Awesome ChatGPT")
-                .accelerator("CmdOrCtrl+Shift+A")
-                .into(),
-            CustomMenuItem::new("buy_coffee".to_string(), "Buy lencx a coffee").into(),
+            // CustomMenuItem::new("awesome".to_string(), "Awesome ChatGPT")
+            //     .accelerator("CmdOrCtrl+Shift+A")
+            //     .into(),
+            CustomMenuItem::new("buy_coffee".to_string(), "Sponsor Us").into(),
         ]),
     );
 
@@ -189,22 +189,11 @@ pub fn init() -> Menu {
             ),
     );
 
-    let window_menu = Submenu::new(
-        "Window",
-        Menu::new()
-            .add_item(CustomMenuItem::new("dalle2".to_string(), "DALL·E 2"))
-            .add_native_item(MenuItem::Separator)
-            .add_native_item(MenuItem::Minimize)
-            .add_native_item(MenuItem::Zoom),
-    );
+    
 
     let help_menu = Submenu::new(
         "Help",
         Menu::new()
-            .add_item(CustomMenuItem::new(
-                "chatgpt_log".to_string(),
-                "ChatGPT Log",
-            ))
             .add_item(CustomMenuItem::new("update_log".to_string(), "Update Log"))
             .add_item(CustomMenuItem::new("report_bug".to_string(), "Report Bug"))
             .add_item(
@@ -216,7 +205,6 @@ pub fn init() -> Menu {
     Menu::new()
         .add_submenu(app_menu)
         .add_submenu(preferences_menu)
-        .add_submenu(window_menu)
         .add_submenu(edit_menu)
         .add_submenu(view_menu)
         .add_submenu(help_menu)
@@ -252,50 +240,50 @@ pub fn menu_handler(event: WindowMenuEvent<tauri::Wry>) {
         "clear_conf" => utils::clear_conf(&app),
         "awesome" => open(&app, conf::AWESOME_URL.to_string()),
         "buy_coffee" => open(&app, conf::BUY_COFFEE.to_string()),
-        "popup_search" => {
-            let chat_conf = conf::ChatConfJson::get_chat_conf();
-            let popup_search = !chat_conf.popup_search;
-            menu_handle
-                .get_item(menu_id)
-                .set_selected(popup_search)
-                .unwrap();
-            ChatConfJson::amend(&serde_json::json!({ "popup_search": popup_search }), None)
-                .unwrap();
-            cmd::window_reload(app.clone(), "main");
-            cmd::window_reload(app, "tray");
-        }
-        "sync_prompts" => {
-            tauri::api::dialog::ask(
-                app.get_window("main").as_ref(),
-                "Sync Prompts",
-                "Data sync will enable all prompts, are you sure you want to sync?",
-                move |is_restart| {
-                    if is_restart {
-                        app.get_window("main")
-                            .unwrap()
-                            .eval("window.__sync_prompts && window.__sync_prompts()")
-                            .unwrap()
-                    }
-                },
-            );
-        }
+        // "popup_search" => {
+        //     let chat_conf = conf::ChatConfJson::get_chat_conf();
+        //     let popup_search = !chat_conf.popup_search;
+        //     menu_handle
+        //         .get_item(menu_id)
+        //         .set_selected(popup_search)
+        //         .unwrap();
+        //     ChatConfJson::amend(&serde_json::json!({ "popup_search": popup_search }), None)
+        //         .unwrap();
+        //     cmd::window_reload(app.clone(), "main");
+        //     cmd::window_reload(app, "tray");
+        // }
+        // "sync_prompts" => {
+        //     tauri::api::dialog::ask(
+        //         app.get_window("main").as_ref(),
+        //         "Sync Prompts",
+        //         "Data sync will enable all prompts, are you sure you want to sync?",
+        //         move |is_restart| {
+        //             if is_restart {
+        //                 app.get_window("main")
+        //                     .unwrap()
+        //                     .eval("window.__sync_prompts && window.__sync_prompts()")
+        //                     .unwrap()
+        //             }
+        //         },
+        //     );
+        // }
         // "hide_dock_icon" => {
         //     ChatConfJson::amend(&serde_json::json!({ "hide_dock_icon": true }), Some(app)).unwrap()
         // }
-        "titlebar" => {
-            let chat_conf = conf::ChatConfJson::get_chat_conf();
-            ChatConfJson::amend(
-                &serde_json::json!({ "titlebar": !chat_conf.titlebar }),
-                None,
-            )
-            .unwrap();
-            tauri::api::process::restart(&app.env());
-        }
-        "system_tray" => {
-            let chat_conf = conf::ChatConfJson::get_chat_conf();
-            ChatConfJson::amend(&serde_json::json!({ "tray": !chat_conf.tray }), None).unwrap();
-            tauri::api::process::restart(&app.env());
-        }
+        // "titlebar" => {
+        //     let chat_conf = conf::ChatConfJson::get_chat_conf();
+        //     ChatConfJson::amend(
+        //         &serde_json::json!({ "titlebar": !chat_conf.titlebar }),
+        //         None,
+        //     )
+        //     .unwrap();
+        //     tauri::api::process::restart(&app.env());
+        // }
+        // "system_tray" => {
+        //     let chat_conf = conf::ChatConfJson::get_chat_conf();
+        //     ChatConfJson::amend(&serde_json::json!({ "tray": !chat_conf.tray }), None).unwrap();
+        //     tauri::api::process::restart(&app.env());
+        // }
         "theme_light" | "theme_dark" | "theme_system" => {
             let theme = match menu_id {
                 "theme_dark" => "Dark",
@@ -370,7 +358,6 @@ pub fn menu_handler(event: WindowMenuEvent<tauri::Wry>) {
             )
             .unwrap(),
         // Help
-        "chatgpt_log" => utils::open_file(utils::chat_root().join("chatgpt.log")),
         "update_log" => open(&app, conf::UPDATE_LOG_URL.to_string()),
         "report_bug" => open(&app, conf::ISSUES_URL.to_string()),
         // "dev_tools" => {
@@ -387,7 +374,7 @@ pub fn tray_menu() -> SystemTray {
     let mut menu_config = SystemTrayMenu::new()
                             .add_item(CustomMenuItem::new(
                                 "control_center".to_string(),
-                                "Control Center",
+                                "App Settings",
                             ));
 
     menu_config = menu_config.add_native_item(SystemTrayMenuItem::Separator);
@@ -428,7 +415,7 @@ pub fn tray_menu() -> SystemTray {
             SystemTrayMenu::new()
                 .add_item(CustomMenuItem::new(
                     "control_center".to_string(),
-                    "Control Center",
+                    "App Settings",
                 ))
                 .add_item(CustomMenuItem::new("show_main_window".to_string(), "Show App"))
                 .add_native_item(SystemTrayMenuItem::Separator)
