@@ -232,10 +232,11 @@ pub fn menu_handler(event: WindowMenuEvent<tauri::Wry>) {
             utils::run_check_update(app, false, None);
         }
         // Preferences
-        // "control_center" => window::control_window(&app),
-        // TODO: open in frontend not as separate window
+        "control_center" => {
+            let core_win = app.get_window("main").unwrap();
+            core_win.emit("OPEN", "preferences").unwrap();
+        },
         "restart" => tauri::api::process::restart(&app.env()),
-        // "inject_script" => open(&app, script_path),
         "go_conf" => utils::open_file(utils::chat_root()),
         "clear_conf" => utils::clear_conf(&app),
         "awesome" => open(&app, conf::AWESOME_URL.to_string()),
@@ -360,10 +361,10 @@ pub fn menu_handler(event: WindowMenuEvent<tauri::Wry>) {
         // Help
         "update_log" => open(&app, conf::UPDATE_LOG_URL.to_string()),
         "report_bug" => open(&app, conf::ISSUES_URL.to_string()),
-        // "dev_tools" => {
-        //     win.open_devtools();
-        //     win.close_devtools();
-        // }
+        "dev_tools" => {
+            win.open_devtools();
+            win.close_devtools();
+        }
         _ => (),
     }
 }
@@ -372,10 +373,10 @@ pub fn menu_handler(event: WindowMenuEvent<tauri::Wry>) {
 pub fn tray_menu() -> SystemTray {
 
     let mut menu_config = SystemTrayMenu::new()
-                            .add_item(CustomMenuItem::new(
-                                "control_center".to_string(),
-                                "App Settings",
-                            ));
+    .add_item(CustomMenuItem::new(
+        "control_center".to_string(),
+        "App Settings",
+    ));
 
     menu_config = menu_config.add_native_item(SystemTrayMenuItem::Separator);
     menu_config = menu_config.add_item(CustomMenuItem::new("show_main_window".to_string(), "Show App"))
@@ -449,7 +450,10 @@ pub fn tray_handler(handle: &AppHandle, event: SystemTrayEvent) {
             // }
         }
         SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
-            // "control_center" => window::control_window(&app),
+            "control_center" => {
+                let core_win = app.get_window("main").unwrap();
+                core_win.emit("OPEN", "preferences").unwrap();
+            },
             // TODO: control center should be a frontend page not separate window
             // "restart" => tauri::api::process::restart(&handle.env()),
             // "show_dock_icon" => {

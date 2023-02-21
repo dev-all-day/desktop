@@ -52,6 +52,13 @@ async fn close_splashscreen(window: tauri::Window) {
 }
 
 #[tauri::command]
+async fn change_window_title(window: tauri::Window) {
+  window.get_window("main").unwrap().show().unwrap();
+  window.set_title("Hello World").unwrap();
+}
+
+
+#[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust API!", name)
 }
@@ -83,6 +90,11 @@ fn is_port_in_use(port: u16) -> bool {
 }
 
 use tauri::Window;
+
+
+fn send_message(window: Window, event: &str, payload: &str) {
+    window.emit(event, payload).unwrap();
+}
 
 #[tauri::command]
 fn do_some_long_task(window: Window){
@@ -201,6 +213,7 @@ pub async fn receive(state: web::Data<AppState>,post: web::Json<Value>) -> impl 
 
     // let mut dd: String = String::from("Hello World");
     state.window.emit("PROGRESS", &json_str).unwrap();
+    // send_message(state.window.clone(),"PROGRESS", &json_str);
 
     HttpResponse::Ok().json(merged_json)
 
@@ -266,7 +279,7 @@ fn main() {
 
     builder
         .invoke_handler(tauri::generate_handler![close_splashscreen])
-        .invoke_handler(tauri::generate_handler![greet,shout,my_ip,my_port,cmd_get_config,do_some_long_task,start_my_server,is_server_running])
+        .invoke_handler(tauri::generate_handler![greet,shout,my_ip,my_port,cmd_get_config,do_some_long_task,start_my_server,is_server_running,change_window_title])
         .run(context)
         .expect("error while running {dev.all.day} application");
 
@@ -309,7 +322,6 @@ async fn start_server(window: Window) -> std::io::Result<()> {
 
     let chat_conf = ChatConfJson::get_chat_conf();
     server_port = chat_conf.port;
-
 
 
     let app = HttpServer::new(move || {
@@ -370,7 +382,6 @@ struct PostError {
     }
 
 use chrono::{Local, DateTime};
-
 
 pub async fn ip() -> impl Responder {
   let ip = local_ip::get().unwrap();

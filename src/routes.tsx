@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Routes as Switch, Navigate } from "react-router-d
 import AppLoader from "./components/layout/AppLoader";
 
 const Home = PageLazyLoad(() => import("./screens/Home"));
+const PreferencesScreen = PageLazyLoad(() => import("./screens/preferences"));
 const NotFound = PageLazyLoad(() => import("./screens/NotFound"));
 
 
@@ -16,6 +17,7 @@ const EL = (props: any) => {
 const Routes = () => {
   const routes = [
     { component: Home, path: "/"},
+    { component: PreferencesScreen, path: "/preferences"},
   ];
 
   // Fallback route
