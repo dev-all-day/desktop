@@ -1,7 +1,15 @@
 import React from 'react'
 
-export default function Container() {
+interface IProps {
+    children?: React.ReactElement | JSX.Element[] | React.ReactNode;
+}
+
+export default function Container({children}: IProps) {
   return (
-    <div>container</div>
+    <div className="flex-grow flex flex-row overflow-hidden justify-center h-screen overscroll-none">
+      {/* Sidebar */}
+        {children}
+      {/* Body */}
+    </div>
   )
 }

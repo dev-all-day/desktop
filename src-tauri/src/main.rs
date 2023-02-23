@@ -52,9 +52,13 @@ async fn close_splashscreen(window: tauri::Window) {
 }
 
 #[tauri::command]
-async fn change_window_title(window: tauri::Window) {
-  window.get_window("main").unwrap().show().unwrap();
-  window.set_title("Hello World").unwrap();
+async fn change_window_title(window: tauri::Window,title: String) {
+
+    if let Some(main) = window.get_window("main") {
+        let new_title = title.clone();
+        main.set_title(&new_title).unwrap();
+    }
+
 }
 
 
@@ -228,7 +232,7 @@ mod app;
 mod conf;
 mod utils;
 
-use app::{menu,setup};
+use app::{menu,setup,cmd};
 use conf::ChatConfJson;
 
 
@@ -279,7 +283,18 @@ fn main() {
 
     builder
         .invoke_handler(tauri::generate_handler![close_splashscreen])
-        .invoke_handler(tauri::generate_handler![greet,shout,my_ip,my_port,cmd_get_config,do_some_long_task,start_my_server,is_server_running,change_window_title])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            shout,
+            my_ip,
+            my_port,
+            cmd_get_config,
+            do_some_long_task,
+            start_my_server,
+            is_server_running,
+            change_window_title,
+            cmd::run_check_update,
+        ])
         .run(context)
         .expect("error while running {dev.all.day} application");
 

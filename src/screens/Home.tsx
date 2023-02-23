@@ -2,15 +2,18 @@ import React, { useEffect, useState, useContext } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { relaunch } from "@tauri-apps/api/process";
 import { open } from "@tauri-apps/api/shell";
+import { getName, getVersion } from '@tauri-apps/api/app';
 import "../App.css";
 
-import { IoShuffleSharp } from "react-icons/io5";
+import logo from '@/assets/128x128.png';
+
+import { IoCheckmarkCircleOutline, IoCloseCircleOutline, IoInformationCircleOutline, IoShuffleSharp, IoSyncSharp } from "react-icons/io5";
 
 import { TConfig } from "../types/config";
 import { SSE } from "../types/enums";
-import { DataViewer, Menu } from "../components/layout";
+import { Body, Container, DataViewer, Menu, Sidebar } from "../components/layout";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { getPreferences } from "../commands";
+import { checkAppUpdate, getPreferences } from "@/commands";
 import { setPreferences } from "../redux/slices/configSlice";
 
 import { appWindow } from '@tauri-apps/api/window';
@@ -64,7 +67,13 @@ export default function Home() {
         }
       );
 
+      setAppInfo({
+        appName: await getName(),
+        appVersion: await getVersion(),
+      });
+
     })()
+
     
   },[])
 
@@ -94,6 +103,8 @@ export default function Home() {
   //   setConnections((prev) => [...prev,con]);
   // }
 
+  const [appInfo, setAppInfo] = useState<Record<string, any>>({});
+
  
   async function do_some_long_task() {
     await invoke("do_some_long_task");
@@ -121,13 +132,13 @@ export default function Home() {
 
   React.useEffect(() => {
     setFilteredEvents(events);
-    const cons : string[]|unknown[] = [...new Set(events.map((item:any) => JSON.parse(item).connection))];
+    const cons : string[]|unknown[] = [...new Set(events.map((item:any) => JSON.parse(item).project))];
     setConnections(cons);
   }, [events]);
 
   const selectEvent = (con:any) => {
     setSelectedConnection(con);
-    setFilteredEvents(events.filter((e:any) => JSON.parse(e).connection === con ));
+    setFilteredEvents(events.filter((e:any) => JSON.parse(e).project === con ));
   }
 
   React.useEffect(() => {
@@ -154,6 +165,7 @@ export default function Home() {
     if(!ip) getIP();
     if(!port) getPort();
     getConfig();
+    start_my_server();
   }, []);
 
   const handleSSE = () => {
@@ -204,8 +216,22 @@ export default function Home() {
   }, [config]);
 
   return (
-    <div className="flex-grow flex flex-row overflow-hidden justify-center h-screen overscroll-none">
-      <div className="flex-shrink-0 w-64 bg-gray-200 dark:bg-[#1e1f21] flex flex-col border-solid border-r-2 border-[#0e0e0f]">
+    <Container>
+      <Sidebar>
+      { connections && connections.map((con:any,key) => {
+          return (
+            <div key={key} onClick={() => selectEvent(con)} className={`text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21] ${con === selectedConnection ? 'bg-gray-400 text-[#1e1f21]':''}`}>
+              {con}
+            </div>
+          )
+          })}
+      </Sidebar>
+      {/* <div className="flex-shrink-0 w-64 bg-gray-200 dark:bg-[#1e1f21] flex flex-col border-solid border-r-2 border-[#0e0e0f]">
+        <div className="flex flex-row justify-between items-center text-gray-400 min-h-14 max-h-14 bg-[#131415] p-3 cursor-pointer pb-2 border-b-2 border-[#0e0e0f]">
+          <img className="img-responsive w-8" src={logo} alt="{dev.all.day}"/>
+          <span className="text-1xl font-bold text-gray-100">{"{dev.all.day}"}</span>
+          <span onClick={checkAppUpdate} className="text-sm text-gray-700 bg-gray-300 rounded-md px-2 flex justify-center items-center gap-2 hover:bg-gray-500 hover:text-gray-50">1.0.1 <IoSyncSharp className="font-bold"/></span>
+        </div>
         <div className="flex flex-col flex-1 p-2 gap-2 scrollbar-thin scrollbar-thumb-[rgba(255,255,255,.05)] scrollbar-track-[#1e1f21] overflow-y-auto">
          
           { connections && connections.map((con:any,key) => {
@@ -230,19 +256,62 @@ export default function Home() {
               <IoChevronForward className="text-gray-200 group-hover:text-[#1e1f21]"/>
           </Link>
         </div>
-      </div>
+      </div> */}
 
-      <div className="flex-1 flex flex-col bg-gray-50 dark:bg-[#131415]">
+      <Body>
         <Menu/>
         <div className="flex flex-col gap-2 flex-1 p-2 scrollbar-thin scrollbar-thumb-[rgba(255,255,255,.1)] scrollbar-track-[#131415] hover:scrollbar-thumb-gray-400 overflow-y-auto">
-          {/* <p className="text-white">{JSON.stringify(preferences,null,2)}</p> */}
-          <p className="text-white">Server Running: {JSON.stringify(serverRunning)}</p>
+          {/* <p className="text-white">{JSON.stringify(appInfo,null,2)}</p> */}
+          {/* <p className="text-white">Server Running: {JSON.stringify(serverRunning)}</p> */}
           {/* <button onClick={() => do_some_long_task()}>Click here</button> */}
-          <button className="dark:bg-gray-50 dark:text-gray-900 bg-[#131415] text-gray-50" onClick={() => start_my_server()}>{loading ? "Loading..." : "Start Server" }</button>
-          <ThemeToggle/>
+          {/* <button className="dark:bg-gray-50 dark:text-gray-900 bg-[#131415] text-gray-50" onClick={() => start_my_server()}>{loading ? "Loading..." : "Start Server" }</button> */}
+          {/* <ThemeToggle/> */}
           <DataViewer filteredEvents={filteredEvents}/>
+
+          <div>
+         
+  
+
+
+    <div className="text-gray-500 bg-[#191920] p-4 rounded-md">
+            <ul className="timeline">
+                <li className="timeline-item">
+                    <div className="timeline-info">
+                        <span>13:37:47.899</span>
+                    </div>
+                    <div className="timeline-marker"></div>
+                    <div className="timeline-content">
+                        <h3 className="timeline-title bg-[#28282f] text-[#70707d] p-2 rounded-md">Description here</h3>
+                        <p className="bg-[#28282f] p-2 rounded-md my-2 text-gray-400">Nullam vel sem. Nullam vel sem. Integer ante arcu, accumsan a, consectetuer eget, posuere ut, mauris. Donec orci lectus, aliquam ut, faucibus non, euismod id, nulla. Donec vitae sapien ut libero venenatis faucibus. ullam dictum felis
+                            eu pede mollis pretium. Pellentesque ut neque.</p>
+                    </div>
+                </li>
+                <li className="timeline-item">
+                    <div className="timeline-info">
+                        <span>13:37:47.899</span>
+                    </div>
+                    <div className="timeline-marker"></div>
+                    <div className="timeline-content">
+                        <h3 className="timeline-title bg-[#28282f] text-[#70707d] p-2 rounded-md">Description here</h3>
+                        <p className="bg-[#28282f] p-2 rounded-md my-2 text-gray-400">Nullam vel sem. Nullam vel sem. Integer ante arcu, accumsan a, consectetuer eget, posuere ut, mauris. Donec orci lectus, aliquam ut, faucibus non, euismod id, nulla. Donec vitae sapien ut libero venenatis faucibus. ullam dictum felis
+                            eu pede mollis pretium. Pellentesque ut neque.</p>
+                    </div>
+                </li>
+                
+                <li className="timeline-item period">
+                    <div className="timeline-info"></div>
+                    <div className="timeline-marker"></div>
+                    
+                </li>
+                
+               
+            </ul>
         </div>
-      </div>
-    </div>
+
+
+          </div>
+        </div>
+      </Body>
+    </Container>
   );
 }

@@ -17,9 +17,15 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "#root/*": ["./*"],
-      "/*": ["./*"],
+      "@/*": ["src/*"],
+      "@assets/*": ["src/assets/*"],
+      "@commands": ["src/commands/index"],
+      "@components/*": ["src/components/*"],
+      "@redux/*": ["src/redux/*"],
+      "@types/*": ["src/types/*"],
+      "@utils/*": ["src/types/*"],
+      // "#root/*": ["./*"],
+      // "/*": ["./*"],
     }
   },
   "include": ["src"],
