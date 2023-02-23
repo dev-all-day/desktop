@@ -5,9 +5,11 @@ import { open } from "@tauri-apps/api/shell";
 import { getName, getVersion } from '@tauri-apps/api/app';
 import "../App.css";
 
+import './Home.css';
+
 import logo from '@/assets/128x128.png';
 
-import { IoCheckmarkCircleOutline, IoCloseCircleOutline, IoInformationCircleOutline, IoShuffleSharp, IoSyncSharp } from "react-icons/io5";
+import { IoCheckmarkCircleOutline, IoCloseCircleOutline, IoEllipseOutline, IoInformationCircleOutline, IoShuffleSharp, IoSyncSharp } from "react-icons/io5";
 
 import { TConfig } from "../types/config";
 import { SSE } from "../types/enums";
@@ -272,7 +274,7 @@ export default function Home() {
          
   
 
-
+    <h1 className="text-gray-400 my-2">Flow Here</h1>
     <div className="text-gray-500 bg-[#191920] p-4 rounded-md">
             <ul className="timeline">
                 <li className="timeline-item">
@@ -281,7 +283,13 @@ export default function Home() {
                     </div>
                     <div className="timeline-marker"></div>
                     <div className="timeline-content">
-                        <h3 className="timeline-title bg-[#28282f] text-[#70707d] p-2 rounded-md">Description here</h3>
+                        <div className="timeline-title bg-[#28282f] text-[#70707d] p-2 rounded-md flex justify-between items-center">
+                          <span>Description here</span>
+                          <div className="flex gap-2 items-center">
+                            <IoEllipseOutline className={`text-gray-300 font-bold text-lg`}/>
+                            <span className={`text-gray-400 text-sm uppercase`}>Error</span>
+                          </div>
+                        </div>
                         <p className="bg-[#28282f] p-2 rounded-md my-2 text-gray-400">Nullam vel sem. Nullam vel sem. Integer ante arcu, accumsan a, consectetuer eget, posuere ut, mauris. Donec orci lectus, aliquam ut, faucibus non, euismod id, nulla. Donec vitae sapien ut libero venenatis faucibus. ullam dictum felis
                             eu pede mollis pretium. Pellentesque ut neque.</p>
                     </div>
@@ -307,6 +315,10 @@ export default function Home() {
                
             </ul>
         </div>
+
+
+
+     
 
 
           </div>
