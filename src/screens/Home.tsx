@@ -9,7 +9,7 @@ import './Home.css';
 
 import logo from '@/assets/128x128.png';
 
-import { IoCheckmarkCircleOutline, IoCloseCircleOutline, IoEllipseOutline, IoInformationCircleOutline, IoShuffleSharp, IoSyncSharp } from "react-icons/io5";
+import { IoCaretForward, IoCheckmarkCircleOutline, IoCloseCircleOutline, IoEllipseOutline, IoInformationCircleOutline, IoShuffleSharp, IoSyncSharp } from "react-icons/io5";
 
 import { TConfig } from "../types/config";
 import { SSE } from "../types/enums";
@@ -220,10 +220,30 @@ export default function Home() {
   return (
     <Container>
       <Sidebar>
-      { connections && connections.map((con:any,key) => {
+      <p className="text-gray-300 uppercase flex justify-center items-center font-bold">projects</p>
+        { connections && connections.map((con:any,key) => {
           return (
-            <div key={key} onClick={() => selectEvent(con)} className={`text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer hover:bg-gray-400 hover:text-[#1e1f21] ${con === selectedConnection ? 'bg-gray-400 text-[#1e1f21]':''}`}>
-              {con}
+            <div key={key} onClick={() => selectEvent(con)} className={`flex justify-between items-center transition-all duration-400 text-sm text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer border border-[#131415] hover:border-gray-400 ${con === selectedConnection ? 'bg-gray-400 text-[#1e1f21]':''}`}>
+              <span>{con}</span>
+              <IoCaretForward/>
+            </div>
+          )
+          })}
+          <p className="text-gray-300 uppercase flex justify-center items-center font-bold">sessions</p>
+          { connections && connections.map((con:any,key) => {
+          return (
+            <div key={key} onClick={() => selectEvent(con)} className={`flex justify-between items-center transition-all duration-400 text-sm text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer border border-[#131415] hover:border-gray-400 ${con === selectedConnection ? 'bg-gray-400 text-[#1e1f21]':''}`}>
+              <span>{con}</span>
+              <IoCaretForward/>
+            </div>
+          )
+          })}
+          <p className="text-gray-300 uppercase flex justify-center items-center font-bold">groups</p>
+          { connections && connections.map((con:any,key) => {
+          return (
+            <div key={key} onClick={() => selectEvent(con)} className={`flex justify-between items-center transition-all duration-400 text-sm text-gray-400 bg-[#131415] rounded-md p-3 cursor-pointer border border-[#131415] hover:border-gray-400 ${con === selectedConnection ? 'bg-gray-400 text-[#1e1f21]':''}`}>
+              <span>{con}</span>
+              <IoCaretForward/>
             </div>
           )
           })}

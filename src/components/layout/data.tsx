@@ -59,7 +59,7 @@ export default function DataViewer({filteredEvents}:any) {
                 <span className="flex flex-1 justify-end text-[#70707d] text-sm" >{JSON.parse(event).time}</span>
               </div>
             </div>
-            <div className="bg-[#28282f] p-4 text-gray-400 rounded-b-md text-sm">{event}</div>
+            <div className="bg-[#28282f] p-4 text-gray-400 rounded-b-md text-sm">{JSON.stringify(JSON.parse(event),null,4)}</div>
           </div>
         ))
     : null}
